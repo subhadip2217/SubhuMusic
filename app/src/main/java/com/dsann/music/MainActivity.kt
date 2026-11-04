@@ -50,6 +50,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -269,8 +270,9 @@ class MainActivity : AppCompatActivity() {
                                     val height = coordinates.size.height.toFloat()
                                     playerViewModel.setBottomNavHeight(height)
                                 },
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            tonalElevation = navElevation
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            tonalElevation = navElevation,
+                            windowInsets = WindowInsets(0, 0, 0, 0)
                         ) {
                             val items = listOf(
                                 Triple("explore", "Explore", R.drawable.ic_explore),
@@ -295,7 +297,14 @@ class MainActivity : AppCompatActivity() {
                                     },
                                     icon = { Icon(painter = painterResource(id = iconResId), contentDescription = label, modifier = Modifier.size(navIconSize)) },
                                     label = if (navLabelsMode == "Never") null else { { Text(label) } },
-                                    alwaysShowLabel = navLabelsMode == "Always"
+                                    alwaysShowLabel = navLabelsMode == "Always",
+                                    colors = NavigationBarItemDefaults.colors(
+                                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        unselectedTextColor = MaterialTheme.colorScheme.onSurface,
+                                        indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+                                    )
                                 )
                             }
                         }
