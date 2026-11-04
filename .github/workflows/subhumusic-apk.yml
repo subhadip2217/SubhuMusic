@@ -40,6 +40,8 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           # The legacy 'tools' package was removed from Google's SDK repository.
+          # Install only platform-tools; Android Gradle Plugin resolves the required
+          # platform and build-tools packages for compileSdk automatically.
           packages: platform-tools
 
       - name: Build debug APK
