@@ -2160,7 +2160,7 @@ private fun AccountScreen(
                             )
                             if (ytCookies != null) {
                                 Text(
-                                    text = "Profile: D.S Music User",
+                                    text = "Profile: SubhuMusic User",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.Bold
@@ -3125,7 +3125,7 @@ private fun AudioFormatRow(
             Column {
                 Text(text = title, style = MaterialTheme.typography.bodyLarge)
                 Text(
-                    text = "Requests this source format without transcoding. If a track has no matching stream, D.S Music asks you to choose from formats that track actually offers.",
+                    text = "Requests this source format without transcoding. If a track has no matching stream, SubhuMusic asks you to choose from formats that track actually offers.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -3953,6 +3953,12 @@ private fun CreditsCard(onOpenUrl: (String) -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp)
                 )
+                Text(
+                    text = "Customized and maintained by Subhadip Tantubay",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
                 
                 Row(
                     modifier = Modifier.padding(top = 24.dp),
@@ -4147,7 +4153,7 @@ private fun FeedbackScreen(navController: androidx.navigation.NavController) {
                     {
                         ListItem(
                             headlineContent = { Text("Request Feature", style = MaterialTheme.typography.bodyLarge) },
-                            supportingContent = { Text("Suggest a new feature for D.S Music", style = MaterialTheme.typography.bodyMedium) },
+                            supportingContent = { Text("Suggest a new feature for SubhuMusic", style = MaterialTheme.typography.bodyMedium) },
                             leadingContent = { Icon(Icons.Rounded.OpenInNew, null, tint = MaterialTheme.colorScheme.primary) },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                             modifier = Modifier.clickable {
