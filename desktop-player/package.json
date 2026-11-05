@@ -46,6 +46,10 @@
       {
         "from": "bin/yt-dlp.exe",
         "to": "yt-dlp.exe"
+      },
+      {
+        "from": "bin/deno.exe",
+        "to": "deno.exe"
       }
     ]
   }
