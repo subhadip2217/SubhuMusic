@@ -1,7 +1,7 @@
 {
   "name": "subhumusic-desktop",
   "version": "0.1.0",
-  "description": "SubhuMusic desktop companion for YouTube Music",
+  "description": "Standalone SubhuMusic desktop audio and video player",
   "main": "main.cjs",
   "private": true,
   "scripts": {
@@ -21,13 +21,18 @@
     "files": [
       "main.cjs",
       "preload.cjs",
+      "index.html",
+      "renderer.js",
+      "style.css",
       "package.json"
     ],
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
@@ -36,6 +41,12 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
-    }
+    },
+    "extraResources": [
+      {
+        "from": "bin/yt-dlp.exe",
+        "to": "yt-dlp.exe"
+      }
+    ]
   }
 }
