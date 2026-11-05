@@ -1251,7 +1251,7 @@ fun SettingsScreenContent(
         composable(SettingsRoute.BackupRestore.route) {
             BackupRestoreScreen(
                 navController = navController,
-                onBackupClick = { exportBackupLauncher.launch("D.S-Music-backup.json") },
+                onBackupClick = { exportBackupLauncher.launch("SubhuMusic-backup.json") },
                 onRestoreClick = { importBackupLauncher.launch(arrayOf("application/json")) }
             )
         }
@@ -3165,7 +3165,7 @@ private fun AudioFormatRow(
 private fun WhatsNewScreen(navController: androidx.navigation.NavController) {
     val releases by androidx.compose.runtime.produceState<List<com.dsann.music.update.GitHubReleaseClient.ReleaseInfo>?>(initialValue = null) {
         withContext(Dispatchers.IO) {
-            val client = com.dsann.music.update.GitHubReleaseClient("DS-ann", "D.S-Music2")
+            val client = com.dsann.music.update.GitHubReleaseClient("subhadip2217", "SubHuMusic")
             value = client.getAllReleases()
         }
     }
@@ -4145,7 +4145,7 @@ private fun FeedbackScreen(navController: androidx.navigation.NavController) {
                             modifier = Modifier.clickable {
                                 val title = URLEncoder.encode("[Bug] ", "UTF-8")
                                 val body = URLEncoder.encode("## Description\n\n\n## Device Information\n$debugInfo\n\n## Steps to Reproduce\n1.\n2.\n3.\n", "UTF-8")
-                                val url = "https://github.com/DS-ann/D.S-Music2/issues/new?title=$title&body=$body"
+                                val url = "https://github.com/subhadip2217/SubHuMusic/issues/new?title=$title&body=$body"
                                 context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
                             }
                         )
@@ -4159,7 +4159,7 @@ private fun FeedbackScreen(navController: androidx.navigation.NavController) {
                             modifier = Modifier.clickable {
                                 val title = URLEncoder.encode("[Feature] ", "UTF-8")
                                 val body = URLEncoder.encode("## Feature Description\n\n\n## Why is this needed?\n\n", "UTF-8")
-                                val url = "https://github.com/MythicalSHUB/SpatialFlow/issues/new?title=$title&body=$body"
+                                val url = "https://github.com/subhadip2217/SubHuMusic/issues/new?title=$title&body=$body"
                                 context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
                             }
                         )
