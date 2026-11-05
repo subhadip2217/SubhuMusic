@@ -2,10 +2,13 @@ const { app, BrowserWindow, ipcMain, Menu } = require("electron");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 const APP_NAME = "SubhuMusic";
-const YTDLP = app.isPackaged ? path.join(process.resourcesPath, "yt-dlp.exe") : path.join(__dirname, "bin", "yt-dlp.exe");
+const RESOURCE_DIR = app.isPackaged ? process.resourcesPath : path.join(__dirname, "bin");
+const YTDLP = path.join(RESOURCE_DIR, "yt-dlp.exe");
+const DENO = path.join(RESOURCE_DIR, "deno.exe");
 function runYtDlp(args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(YTDLP, args, { windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+    const runtimeArgs = ["--js-runtimes", "deno:" + DENO, "--remote-components", "ejs:github"];
+    const child = spawn(YTDLP, [...runtimeArgs, ...args], { windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
     let stdout = "", stderr = "";
     child.stdout.setEncoding("utf8"); child.stderr.setEncoding("utf8");
     child.stdout.on("data", chunk => { stdout += chunk; if (stdout.length > 15000000) child.kill(); });
@@ -14,7 +17,7 @@ function runYtDlp(args) {
     child.on("close", code => {
       if (code !== 0) {
         const detail = stderr.trim();
-        if (/requested format is not available/i.test(detail)) return reject(new Error("YouTube did not provide a compatible stream for this video. Try another result."));
+        if (/requested format is not available/i.test(detail)) return reject(new Error("YouTube did not expose a compatible stream. Its format or PO-token restrictions may be blocking this video; try another result."));
         if (/sign in|bot|confirm you.re not a bot/i.test(detail)) return reject(new Error("YouTube is restricting this video right now. Try another result."));
         return reject(new Error(detail || "Stream extraction failed."));
       }
