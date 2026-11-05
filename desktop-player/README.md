@@ -6,7 +6,9 @@ A lightweight Electron desktop companion that opens the official YouTube Music w
 
 - Opens the official YouTube Music experience in a dedicated Windows app window.
 - Keeps the site's login session in Electron's persistent app profile between launches.
-- Uses the official YouTube Music interface for search, playback, playlists and liked music.
+- Uses the official YouTube Music interface for search, audio playback, playlists and liked music.
+- Adds a desktop **Video / Audio** switch. Video mode opens the current track in YouTube's official embedded player; switching back closes the video and resumes YouTube Music audio.
+- Video mode needs a current YouTube video ID. Tracks without an associated video cannot be switched to video.
 - Does not ask for Google passwords in a SubhuMusic form.
 - Does not require a Google Cloud project or YouTube Data API key.
 
