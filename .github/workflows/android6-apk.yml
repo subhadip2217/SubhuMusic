@@ -1,10 +1,10 @@
-name: Build and upload D.S Music Android 6+ APK
+name: Build and upload SubhuMusic Android 6+ APK
 
 on:
   workflow_call:
     inputs:
       source_ref:
-        description: D.S Music branch, tag, or commit to build
+        description: SubhuMusic branch, tag, or commit to build
         required: false
         type: string
         default: master
@@ -31,7 +31,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: dsmusic-arm64-apk-${{ github.ref }}
+  group: subhumusic-arm64-apk-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v7
         with:
-          repository: DS-ann/D.S-Music2
+          repository: subhadip2217/SubHuMusic
           ref: ${{ inputs.source_ref || github.ref_name }}
 
       - name: Set up JDK 17
@@ -85,11 +85,11 @@ jobs:
           printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
           chmod 600 "$KEYSTORE"
           keytool -list -storetype PKCS12 -keystore "$KEYSTORE" -storepass "$SIGNING_KEYSTORE_PASSWORD" -alias "$SIGNING_KEY_ALIAS" >/dev/null
-          echo "Shared D.S-Apps PKCS12 signing key validated."
+          echo "Release signing key validated."
 
           BUILD_DIR="app/build/outputs/apk/release"
           SOURCE_APK="$BUILD_DIR/app-arm64-v8a-release-unsigned.apk"
-          ALIGNED_APK="$RUNNER_TEMP/D.S-Music-arm64-v8a-aligned.apk"
+          ALIGNED_APK="$RUNNER_TEMP/SubhuMusic-arm64-v8a-aligned.apk"
           OUTPUT_APK="$BUILD_DIR/dsmusic.apk"
           OUTPUT_ZIP="$BUILD_DIR/dsmusic.zip"
           ZIPALIGN="$ANDROID_HOME/build-tools/37.0.0/zipalign"
@@ -110,7 +110,7 @@ jobs:
       - name: Upload compressed signed APK artifact
         uses: actions/upload-artifact@v7
         with:
-          name: D.S-Music-Android
+          name: SubhuMusic-Android-6plus
           path: app/build/outputs/apk/release/dsmusic.zip
           archive: false
           if-no-files-found: error
