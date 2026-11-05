@@ -31,6 +31,10 @@ jobs:
           New-Item -ItemType Directory -Force -Path bin | Out-Null
           Invoke-WebRequest -Uri "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe" -OutFile "bin/yt-dlp.exe"
           if ((Get-Item "bin/yt-dlp.exe").Length -lt 1000000) { throw "yt-dlp download looks incomplete" }
+          Invoke-WebRequest -Uri "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-pc-windows-msvc.zip" -OutFile "deno.zip"
+          Expand-Archive -Path "deno.zip" -DestinationPath "deno-unpacked" -Force
+          Copy-Item "deno-unpacked/deno.exe" "bin/deno.exe"
+          if ((Get-Item "bin/deno.exe").Length -lt 1000000) { throw "Deno download looks incomplete" }
       - name: Install dependencies
         run: npm install
       - name: Build Windows installer
