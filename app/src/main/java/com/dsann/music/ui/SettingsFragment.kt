@@ -4030,7 +4030,7 @@ private fun AppLogoSection(isLandscape: Boolean) {
             letterSpacing = 0.sp
         )
         Text(
-            text = "© 2025 Shubham Karande",
+            text = "© 2025 Subhadip Tantubay",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp)
