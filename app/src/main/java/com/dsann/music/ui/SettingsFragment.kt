@@ -3948,7 +3948,7 @@ private fun CreditsCard(onOpenUrl: (String) -> Unit) {
                     modifier = Modifier.padding(top = 16.dp)
                 )
                 Text(
-                    text = "Developer & Maintainer",
+                    text = "Android Developer",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp)
