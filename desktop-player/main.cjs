@@ -22,18 +22,13 @@ async function installVideoMode(contents) {
     if (window.__subhuVideoModeInstalled) return;
     window.__subhuVideoModeInstalled = true;
     const style = document.createElement('style');
-    style.textContent = `
-      #subhu-video-toggle { position:fixed; z-index:2147483000; right:28px; bottom:26px;
-        border:1px solid #555; border-radius:24px; padding:11px 20px; color:#fff;
-        background:#242428; font:600 14px Arial,sans-serif; cursor:pointer;
-        box-shadow:0 4px 18px #0008; }
-      #subhu-video-panel { position:fixed; z-index:2147482999; right:24px; bottom:78px;
-        width:min(760px,70vw); aspect-ratio:16/9; background:#000; border-radius:14px;
-        overflow:hidden; box-shadow:0 12px 40px #000b; display:none; }
-      #subhu-video-panel iframe { width:100%; height:100%; border:0; }
-      #subhu-video-panel.subhu-visible { display:block; }
-      @media(max-width:800px) { #subhu-video-panel { width:calc(100vw - 32px); right:16px; } }
-    `;
+    style.textContent = [
+      "#subhu-video-toggle { position:fixed; z-index:2147483000; right:28px; bottom:26px; border:1px solid #555; border-radius:24px; padding:11px 20px; color:#fff; background:#242428; font:600 14px Arial,sans-serif; cursor:pointer; box-shadow:0 4px 18px #0008; }",
+      "#subhu-video-panel { position:fixed; z-index:2147482999; right:24px; bottom:78px; width:min(760px,70vw); aspect-ratio:16/9; background:#000; border-radius:14px; overflow:hidden; box-shadow:0 12px 40px #000b; display:none; }",
+      "#subhu-video-panel iframe { width:100%; height:100%; border:0; }",
+      "#subhu-video-panel.subhu-visible { display:block; }",
+      "@media(max-width:800px) { #subhu-video-panel { width:calc(100vw - 32px); right:16px; } }"
+    ].join("\\n");
     document.documentElement.appendChild(style);
     const panel = document.createElement('div');
     panel.id = 'subhu-video-panel';
