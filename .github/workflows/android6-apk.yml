@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       source_ref:
-        description: D.S Music branch, tag, or commit to build
+        description: SubhuMusic branch, tag, or commit to build
         required: true
         type: string
         default: master
