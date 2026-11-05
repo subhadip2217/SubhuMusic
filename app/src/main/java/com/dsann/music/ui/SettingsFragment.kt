@@ -3932,8 +3932,8 @@ private fun CreditsCard(onOpenUrl: (String) -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 coil.compose.AsyncImage(
-                    model = "https://github.com/DS-ann.png",
-                    contentDescription = "Shubham Karande",
+                    model = "https://github.com/subhadip2217.png",
+                    contentDescription = "Subhadip Tantubay",
                     modifier = Modifier
                         .size(80.dp)
                         .clip(CircleShape),
@@ -3941,14 +3941,14 @@ private fun CreditsCard(onOpenUrl: (String) -> Unit) {
                 )
                 
                 Text(
-                    text = "Shubham Karande",
+                    text = "Subhadip Tantubay",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(top = 16.dp)
                 )
                 Text(
-                    text = "Android Developer",
+                    text = "Developer & Maintainer",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp)
@@ -3964,9 +3964,9 @@ private fun CreditsCard(onOpenUrl: (String) -> Unit) {
                     modifier = Modifier.padding(top = 24.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    SocialIconButton(icon = R.drawable.ic_github, onClick = { onOpenUrl("https://github.com/DS-ann") })
-                    SocialIconButton(icon = R.drawable.ic_instagram, onClick = { onOpenUrl("https://instagram.com/mythicalshub") })
-                    SocialIconButton(icon = R.drawable.ic_youtube, onClick = { onOpenUrl("https://youtube.com/@8dmusic_s") })
+                    SocialIconButton(icon = R.drawable.ic_github, onClick = { onOpenUrl("https://github.com/subhadip2217") })
+                    SocialIconButton(icon = R.drawable.ic_instagram, onClick = { onOpenUrl("https://www.instagram.com/subhadip.tantubay/?hl=en#") })
+                    SocialIconButton(icon = R.drawable.ic_youtube, onClick = { onOpenUrl("https://www.youtube.com/@subhadip.tantubay") })
                 }
             }
         }
