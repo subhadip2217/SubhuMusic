@@ -1,1 +1,49 @@
-PLACEHOLDER
+@file:Suppress("DEPRECATION")
+
+package com.dsann.music.ui.onboarding
+    
+    import android.Manifest
+    import android.annotation.SuppressLint
+    import android.content.Context
+    import android.content.pm.PackageManager
+    import android.os.Build
+    import androidx.activity.compose.rememberLauncherForActivityResult
+    import androidx.activity.result.contract.ActivityResultContracts
+    import androidx.compose.animation.AnimatedContent
+    import androidx.compose.animation.SizeTransform
+    import androidx.compose.animation.core.FastOutSlowInEasing
+    import androidx.compose.animation.core.Spring
+    import androidx.compose.animation.core.animateFloat
+    import androidx.compose.animation.core.animateFloatAsState
+    import androidx.compose.animation.core.spring
+    import androidx.compose.animation.core.tween
+    import androidx.compose.animation.fadeIn
+    import androidx.compose.animation.fadeOut
+    import androidx.compose.animation.slideInVertically
+    import androidx.compose.animation.slideOutVertically
+    import androidx.compose.animation.togetherWith
+    import androidx.compose.foundation.ExperimentalFoundationApi
+    import androidx.compose.foundation.Image
+    import androidx.compose.foundation.background
+    import androidx.compose.foundation.layout.Arrangement
+    import androidx.compose.foundation.layout.Box
+    import androidx.compose.foundation.layout.Column
+    import androidx.compose.foundation.layout.Row
+    import androidx.compose.foundation.layout.Spacer
+    import androidx.compose.foundation.layout.aspectRatio
+    import androidx.compose.foundation.layout.fillMaxSize
+    import androidx.compose.foundation.layout.fillMaxWidth
+    import androidx.compose.foundation.layout.height
+    import androidx.compose.foundation.layout.heightIn
+    import androidx.compose.foundation.layout.navigationBarsPadding
+    import androidx.compose.foundation.layout.padding
+    import androidx.compose.foundation.layout.size
+    import androidx.compose.foundation.layout.width
+    import androidx.compose.foundation.pager.HorizontalPager
+    import androidx.compose.foundation.pager.PagerState
+    import androidx.compose.foundation.pager.rememberPagerState
+    import androidx.compose.foundation.shape.CircleShape
+    import androidx.compose.foundation.shape.RoundedCornerShape
+    import androidx.compose.material.icons.Icons
+    import androidx.compose.material.icons.filled.ArrowBack
+    import androidx.compose.material.icons.filled.ArrowForward
