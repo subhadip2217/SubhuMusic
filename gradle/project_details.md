@@ -1,4 +1,9 @@
-# SpatialFlow Project Details
+# SubhuMusic — Historical SpatialFlow Project Snapshot
+
+> This document is a preserved reference snapshot of the upstream SpatialFlow project. It is **not** the active SubhuMusic source and is not included in the Android build. The live app is SubhuMusic, customized and maintained by Subhadip Tantubay. Original author, copyright, and license references inside this historical snapshot are intentionally retained.
+
+## Original SpatialFlow Project Details
+
 
 This file contains the content of all significant source code and configuration files in the project.
 
