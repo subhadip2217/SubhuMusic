@@ -68,7 +68,7 @@ jobs:
       - name: Compile ARM64-v8a release APK
         run: gradle --no-daemon --warning-mode all assembleRelease
 
-      - name: Sign with shared D.S-Apps release key and highly compress APK
+      - name: Sign with the SubhuMusic release key and compress APK
         env:
           SIGNING_KEYSTORE_BASE64: ${{ secrets.BATTERYPULSE_KEYSTORE_BASE64 }}
           SIGNING_KEYSTORE_PASSWORD: ${{ secrets.BATTERYPULSE_STORE_PASSWORD }}
@@ -81,7 +81,7 @@ jobs:
           : "${SIGNING_KEYSTORE_PASSWORD:?Missing the release keystore password secret}"
           : "${SIGNING_KEY_ALIAS:?Missing the release key alias secret}"
           : "${SIGNING_KEY_PASSWORD:?Missing the release key password secret}"
-          KEYSTORE="$RUNNER_TEMP/dsmusic-release-keystore"
+          KEYSTORE="$RUNNER_TEMP/subhumusic-release-keystore"
           printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
           chmod 600 "$KEYSTORE"
           keytool -list -storetype PKCS12 -keystore "$KEYSTORE" -storepass "$SIGNING_KEYSTORE_PASSWORD" -alias "$SIGNING_KEY_ALIAS" >/dev/null
@@ -90,8 +90,8 @@ jobs:
           BUILD_DIR="app/build/outputs/apk/release"
           SOURCE_APK="$BUILD_DIR/app-arm64-v8a-release-unsigned.apk"
           ALIGNED_APK="$RUNNER_TEMP/SubhuMusic-arm64-v8a-aligned.apk"
-          OUTPUT_APK="$BUILD_DIR/dsmusic.apk"
-          OUTPUT_ZIP="$BUILD_DIR/dsmusic.zip"
+          OUTPUT_APK="$BUILD_DIR/SubhuMusic.apk"
+          OUTPUT_ZIP="$BUILD_DIR/SubhuMusic.zip"
           ZIPALIGN="$ANDROID_HOME/build-tools/37.0.0/zipalign"
           APK_SIGNER="$ANDROID_HOME/build-tools/37.0.0/apksigner"
 
@@ -111,7 +111,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: SubhuMusic-Android-6plus
-          path: app/build/outputs/apk/release/dsmusic.zip
+          path: app/build/outputs/apk/release/SubhuMusic.zip
           archive: false
           if-no-files-found: error
           retention-days: 14
