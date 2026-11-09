@@ -595,7 +595,7 @@ fun LibraryScreen(
                                     activeTab
                                 ) {
                                     value = withContext(Dispatchers.Default) {
-                                        localSongs.filter(::isSpatialFlowDownloadedSong)
+                                        localSongs.filter(::isSubhuMusicDownloadedSong)
                                     }
                                 }
 
@@ -3049,7 +3049,7 @@ private fun RecapTabContent(
                                     scope.launch {
                                         YouTubeMusic.createPlaylist(
                                             title = "Replay - " + selectedPeriod,
-                                            description = "Made with D.S Music Replay",
+                                            description = "Made with SubhuMusic Replay",
                                             privacyStatus = "PRIVATE",
                                             videoIds = ids
                                         ).onSuccess {
@@ -3209,19 +3209,23 @@ private fun accountViewModelRefreshReplay(context: Context) {
 
 
 private fun isSpatialFlowDownloadedSong(song: SongItem): Boolean =
-    isSpatialFlowDownloadedLocation(song.mediaStoreRelativePath, song.path ?: song.data)
+    isSubhuMusicDownloadedLocation(song.mediaStoreRelativePath, song.path ?: song.data)
 
 private fun isSpatialFlowDownloadedLocation(relativePathValue: String?, rawPath: String?): Boolean {
     val relativePath = relativePathValue.orEmpty().trim('/').lowercase(java.util.Locale.ROOT)
     val appFolders = listOf(
+        "music/subhumusic", "download/subhumusic", "downloads/subhumusic",
+        // Keep recognising files downloaded by earlier D.S Music and SpatialFlow builds.
         "music/d.s music", "download/d.s music", "downloads/d.s music",
-        // Keep recognising files downloaded by earlier SpatialFlow builds.
         "music/spatialflow", "download/spatialflow", "downloads/spatialflow"
     )
     if (appFolders.any { relativePath == it || relativePath.startsWith("$it/") }) return true
 
     val path = rawPath.orEmpty().replace('\\', '/').lowercase(java.util.Locale.ROOT)
-    return path.contains("/music/d.s music/") ||
+    return path.contains("/music/subhumusic/") ||
+        path.contains("/download/subhumusic/") ||
+        path.contains("/downloads/subhumusic/") ||
+        path.contains("/music/d.s music/") ||
         path.contains("/download/d.s music/") ||
         path.contains("/downloads/d.s music/") ||
         path.contains("/music/spatialflow/") ||
@@ -3509,7 +3513,7 @@ private fun StreamCacheTabContent(
                             fontWeight = FontWeight.ExtraBold
                         )
                         Text(
-                            "D.S Music · ${cacheEntries.size} songs",
+                            "SubhuMusic · ${cacheEntries.size} songs",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
