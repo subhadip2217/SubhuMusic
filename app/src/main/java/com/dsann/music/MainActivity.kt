@@ -733,7 +733,7 @@ class MainActivity : AppCompatActivity() {
                 val release = client.latestRelease ?: return@launch
 
                 val currentVersion = BuildConfig.VERSION_NAME
-                if (VersionUtils.isNewer(release.tagName, currentVersion)) {
+                if (release.hasApk() && VersionUtils.isNewer(release.tagName, currentVersion)) {
                     withContext(Dispatchers.Main) {
                         showUpdateDialog(release)
                     }
@@ -759,7 +759,7 @@ class MainActivity : AppCompatActivity() {
             .setCancelable(true)
             .setPositiveButton("Update Now") { _, _ ->
                 val rootView = findViewById<View>(android.R.id.content)
-                updateManager.checkForUpdate(rootView, BuildConfig.VERSION_NAME)
+                updateManager.downloadAndInstall(rootView, release)
             }
             .setNegativeButton("Later") { dialog, _ -> dialog.dismiss() }
             .setNeutralButton("Don't Show Again") { dialog, _ ->
