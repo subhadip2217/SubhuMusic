@@ -48,7 +48,7 @@ public class GitHubReleaseClient {
                 return null;
             }
 
-            return parseRelease(readResponse(connection.getInputStream()));
+            return parseRelease(new JSONObject(readResponse(connection.getInputStream())));
         } catch (Exception e) {
             Log.e(TAG, "Failed to fetch latest release", e);
             return null;
