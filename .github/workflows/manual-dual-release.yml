@@ -67,7 +67,7 @@ jobs:
       - name: Compile ARM64-v8a release APK
         run: gradle --no-daemon --stacktrace assembleRelease
 
-      - name: Sign Android APK with shared D.S-Apps release key
+      - name: Sign Android APK with the SubhuMusic release key
         env:
           SIGNING_KEYSTORE_BASE64: ${{ secrets.BATTERYPULSE_KEYSTORE_BASE64 }}
           SIGNING_KEYSTORE_PASSWORD: ${{ secrets.BATTERYPULSE_STORE_PASSWORD }}
@@ -86,8 +86,8 @@ jobs:
           SOURCE_APK="$BUILD_DIR/app-arm64-v8a-release-unsigned.apk"
           test -s "$SOURCE_APK"
 
-          KEYSTORE="$RUNNER_TEMP/dsmusic-release-keystore.p12"
-          ALIGNED_APK="$RUNNER_TEMP/dsmusic-android-aligned.apk"
+          KEYSTORE="$RUNNER_TEMP/subhumusic-release-keystore.p12"
+          ALIGNED_APK="$RUNNER_TEMP/subhumusic-android-aligned.apk"
           OUTPUT_APK="$RUNNER_TEMP/SubhuMusic-Android.apk"
           ZIPALIGN="$ANDROID_HOME/build-tools/37.0.0/zipalign"
           APK_SIGNER="$ANDROID_HOME/build-tools/37.0.0/apksigner"
