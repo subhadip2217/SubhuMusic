@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.View;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Locale;
 
@@ -126,7 +125,7 @@ public class UpdateManager {
 
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadUrl));
             request.setTitle("SubhuMusic " + release.tagName);
-            request.setDescription("Downloading the verified release APK...");
+            request.setDescription("Downloading the latest release APK...");
             request.setMimeType("application/vnd.android.package-archive");
             request.setNotificationVisibility(
                     DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
