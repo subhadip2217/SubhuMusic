@@ -108,6 +108,13 @@
             </intent-filter>
         </receiver>
 
+        <!-- Receives a completed APK download and hands it to Android's package installer. -->
+        <activity
+            android:name=".update.UpdateInstallActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.SpatialFlow.Translucent" />
+
         <!-- SubhuMusic App Widgets -->
 
         <receiver
