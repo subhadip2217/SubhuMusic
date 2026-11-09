@@ -60,7 +60,7 @@ import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Premium Kotlin-first ViewModel for D.S Music.
+ * Premium Kotlin-first ViewModel for SubhuMusic.
  * Migrated from legacy Java/LiveData architecture to StateFlow + Coroutines.
  * Optimized for Material 3 Expressive and Media3 integration.
  */
