@@ -1,157 +1,165 @@
 package com.dsann.music.update;
 
-import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.Locale;
+
 public class UpdateManager {
 
     private static final String TAG = "UpdateManager";
     private static final String GITHUB_OWNER = "subhadip2217";
     private static final String GITHUB_REPO = "SubHuMusic";
+    private static final String PREFS_NAME = "update_prefs";
+    private static final String KEY_DOWNLOAD_ID = "download_id";
+    private static final String KEY_DOWNLOAD_VERSION = "download_version";
 
     private final Context context;
     private final GitHubReleaseClient client;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public UpdateManager(Context context) {
         this.context = context.getApplicationContext();
         this.client = new GitHubReleaseClient(GITHUB_OWNER, GITHUB_REPO);
     }
 
-    // -----------------------------------------------------
-    // CHECK FOR UPDATE
-    // -----------------------------------------------------
+    /** Checks the repository's latest stable GitHub Release and offers its APK. */
     public void checkForUpdate(View rootView, String currentVersion) {
-        showSnackbarAnchored(rootView, "Checking for updates...", Snackbar.LENGTH_SHORT);
+        showStatus("Checking GitHub for the latest SubhuMusic update...");
 
         new Thread(() -> {
-            final GitHubReleaseClient.ReleaseInfo release = client.getLatestRelease(); // ✅ FIXED (final variable)
+            GitHubReleaseClient.ReleaseInfo release = client.getLatestRelease();
 
             if (release == null) {
-                runOnUi(() ->
-                        showSnackbarAnchored(rootView, "Failed to check for updates", Snackbar.LENGTH_LONG)
-                );
+                runOnUi(() -> showStatus(
+                        "No published SubhuMusic APK release was found. Check again after a release is published."
+                ));
+                return;
+            }
+
+            if (!release.hasApk()) {
+                runOnUi(() -> showStatus(
+                        "The latest GitHub release does not contain a SubhuMusic APK yet."
+                ));
                 return;
             }
 
             boolean isNewer = VersionUtils.isNewer(release.tagName, currentVersion);
-
             runOnUi(() -> {
                 if (isNewer) {
                     promptUpdate(rootView, release);
                 } else {
-                    showSnackbarAnchored(rootView, "You're on the latest version! 🎉", Snackbar.LENGTH_LONG);
+                    showStatus("You're already using the latest SubhuMusic version.");
                 }
             });
-        }).start();
+        }, "SubhuMusic-UpdateCheck").start();
     }
 
-    // -----------------------------------------------------
-    // UPDATE PROMPT
-    // -----------------------------------------------------
     private void promptUpdate(View rootView, GitHubReleaseClient.ReleaseInfo release) {
-        String message = "New version " + release.tagName + " is available!\n\n";
+        StringBuilder message = new StringBuilder();
+        message.append("Version ").append(release.tagName).append(" is available.");
 
-        if (release.changelog != null && !release.changelog.isEmpty()) {
-            String changelog = release.changelog.length() > 400
-                    ? release.changelog.substring(0, 400) + "..."
-                    : release.changelog;
-            message += changelog;
+        if (release.apkSize > 0L) {
+            double sizeMb = release.apkSize / (1024.0 * 1024.0);
+            message.append(String.format(Locale.getDefault(), "\nAPK size: %.1f MB", sizeMb));
         }
 
-        Activity host = getActivityIfPossible();
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(
-                host != null ? host : rootView.getContext()
-        )
-                .setTitle("Update Available")
-                .setMessage(message)
-                .setPositiveButton("Update", (dialog, which) -> {
-                    startDownload(rootView, release.apkUrl);
-                })
-                .setNegativeButton("Later", null);
+        if (release.changelog != null && !release.changelog.trim().isEmpty()) {
+            String changelog = release.changelog.length() > 600
+                    ? release.changelog.substring(0, 600) + "..."
+                    : release.changelog;
+            message.append("\n\nWhat's new:\n").append(changelog);
+        }
 
-        runOnUi(builder::show);
+        new MaterialAlertDialogBuilder(rootView.getContext())
+                .setTitle("SubhuMusic update available")
+                .setMessage(message.toString())
+                .setPositiveButton("Download & Install", (dialog, which) ->
+                        downloadAndInstall(rootView, release))
+                .setNegativeButton("Later", null)
+                .show();
     }
 
-    // -----------------------------------------------------
-    // START APK DOWNLOAD
-    // -----------------------------------------------------
-    private void startDownload(View rootView, String apkUrl) {
-        try {
+    /** Starts the actual download for a release already confirmed by the user. */
+    public void downloadAndInstall(View rootView, GitHubReleaseClient.ReleaseInfo release) {
+        if (release == null || !release.hasApk()) {
+            showStatus("The APK download link is missing from this release.");
+            return;
+        }
 
-            DownloadManager dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-            if (dm == null) {
-                runOnUi(() -> showSnackbarAnchored(rootView, "Download Manager not available", Snackbar.LENGTH_LONG));
+        String downloadUrl = release.apkUrl.trim();
+        if (!downloadUrl.startsWith("https://")) {
+            showStatus("The GitHub APK link is not secure. Update cancelled.");
+            return;
+        }
+
+        try {
+            DownloadManager downloadManager =
+                    (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+            if (downloadManager == null) {
+                showStatus("Android Download Manager is unavailable.");
                 return;
             }
 
-            Uri uri = Uri.parse(apkUrl);
-            DownloadManager.Request request = new DownloadManager.Request(uri);
+            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            long previousDownloadId = prefs.getLong(KEY_DOWNLOAD_ID, -1L);
+            if (previousDownloadId != -1L) {
+                try {
+                    downloadManager.remove(previousDownloadId);
+                } catch (Exception ignored) {
+                    // A completed or expired download may no longer be removable.
+                }
+            }
 
-            request.setTitle("SubhuMusic Update");
-            request.setDescription("Downloading latest version...");
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            String safeVersion = release.tagName.replaceAll("[^A-Za-z0-9._-]", "_");
+            String filename = "SubhuMusic-update-" + safeVersion + ".apk";
 
-            String filename = "SubhuMusic-update.apk";
-            request.setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, filename);
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadUrl));
+            request.setTitle("SubhuMusic " + release.tagName);
+            request.setDescription("Downloading the verified release APK...");
+            request.setMimeType("application/vnd.android.package-archive");
+            request.setNotificationVisibility(
+                    DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+            );
+            request.setAllowedOverMetered(true);
+            request.setAllowedOverRoaming(false);
+            request.setDestinationInExternalFilesDir(
+                    context, Environment.DIRECTORY_DOWNLOADS, filename
+            );
 
-            long downloadId = dm.enqueue(request);
-
-            SharedPreferences prefs = context.getSharedPreferences("update_prefs", Context.MODE_PRIVATE);
+            long downloadId = downloadManager.enqueue(request);
             prefs.edit()
-                    .putLong("download_id", downloadId)
-                    .putString("download_filename", filename)
+                    .putLong(KEY_DOWNLOAD_ID, downloadId)
+                    .putString(KEY_DOWNLOAD_VERSION, release.tagName)
                     .apply();
 
-            runOnUi(() -> {
-                Snackbar sb = makeAnchoredSnackbar(rootView, "Downloading update...", Snackbar.LENGTH_LONG);
-                sb.setAction("View", v -> {
-                    Intent intent = new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(intent);
-                });
-                sb.show();
-            });
-
+            showStatus("Downloading SubhuMusic " + release.tagName
+                    + ". Android will open the installer when the APK is ready.");
         } catch (Exception e) {
-            Log.e(TAG, "Download failed", e);
-            runOnUi(() ->
-                    showSnackbarAnchored(rootView, "Download failed. Try again.", Snackbar.LENGTH_LONG)
-            );
+            Log.e(TAG, "Could not start SubhuMusic update download", e);
+            showStatus("Could not start the update download. Please try again.");
         }
     }
 
-    // -----------------------------------------------------
-    // UI HELPERS
-    // -----------------------------------------------------
-    private void runOnUi(Runnable r) {
-        Activity a = getActivityIfPossible();
-        if (a != null) {
-            a.runOnUiThread(r);
+    private void runOnUi(Runnable action) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            action.run();
         } else {
-            new android.os.Handler(android.os.Looper.getMainLooper()).post(r);
+            mainHandler.post(action);
         }
     }
 
-    private Snackbar makeAnchoredSnackbar(View rootView, String msg, int duration) {
-        return Snackbar.make(rootView, msg, duration);
-    }
-
-    private void showSnackbarAnchored(View rootView, String msg, int duration) {
-        runOnUi(() -> com.dsann.music.ui.SnackbarController.INSTANCE.showMessage(msg));
-    }
-
-    private Activity getActivityIfPossible() {
-        if (context instanceof Activity) return (Activity) context;
-        return null;
+    private void showStatus(String message) {
+        runOnUi(() -> com.dsann.music.ui.SnackbarController.INSTANCE.showMessage(message));
     }
 }
