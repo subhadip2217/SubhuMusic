@@ -135,13 +135,33 @@ SubhuMusic is an independent, community-developed project and is **not affiliate
 
 All trademarks and content belong to their respective owners. Users are responsible for ensuring that their use of the app and any downloaded content complies with applicable laws, platform terms, and the rights of content owners.
 
-## 👨‍💻 Developer
+## 🌟 Project Creator & Maintainer
 
 <div align="center">
 
-**Subhadip Tantubay**
+<a href="https://github.com/subhadip2217">
+  <img src="https://github.com/subhadip2217.png" width="120" alt="Subhadip Tantubay" />
+</a>
 
-[GitHub](https://github.com/subhadip2217) · [Instagram](https://www.instagram.com/subhadip.tantubay/?hl=en) · [YouTube](https://www.youtube.com/@subhadip.tantubay)
+### [Subhadip Tantubay](https://github.com/subhadip2217)
+
+**Founder · Developer · Project Maintainer**
+
+The person behind SubhuMusic — working on its development, Android releases, improvements, and maintenance.
+
+[![GitHub](https://img.shields.io/badge/GitHub-subhadip2217-181717?style=for-the-badge&logo=github)](https://github.com/subhadip2217)
+[![Instagram](https://img.shields.io/badge/Instagram-Follow-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/subhadip.tantubay/?hl=en)
+[![YouTube](https://img.shields.io/badge/YouTube-Visit-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@subhadip.tantubay)
+
+</div>
+
+---
+
+<div align="center">
+
+**Thanks for checking out SubhuMusic!**
+
+If you enjoy the project, consider giving the repository a ⭐. It helps more people discover it.
 
 *Made with ❤️ and a love for music.*
 
