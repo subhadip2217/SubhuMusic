@@ -8,6 +8,11 @@ plugins {
     id("com.github.ben-manes.versions") version "0.54.0"
 }
 
+// Versioned release workflows pass these properties so the installed APK can be updated
+// in place. Local/debug builds keep the current fallback version.
+def appVersionName = (project.findProperty('APP_VERSION_NAME') ?: '1.8.18').toString()
+def appVersionCode = (project.findProperty('APP_VERSION_CODE') ?: '26').toString().toInteger()
+
 android {
     namespace 'com.dsann.music'
     compileSdk 37
@@ -20,8 +25,8 @@ android {
         // Android 6.0 Marshmallow is API 23; keep APIs newer than 23 guarded at runtime.
         minSdk 23
         targetSdk 37
-        versionCode 26
-        versionName "1.8.18"
+        versionCode appVersionCode
+        versionName appVersionName
     }
 
     // Produce only the ARM64-v8a APK; do not emit universal or other-ABI APKs.
