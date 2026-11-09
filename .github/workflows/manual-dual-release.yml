@@ -64,8 +64,42 @@ jobs:
         shell: bash
         run: sdkmanager --channel=3 "platforms;android-37.0" "build-tools;37.0.0"
 
+      - name: Resolve Android version and version code
+        id: android-version
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_TAG#v}"
+          if [[ ! "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "Use a release tag like v1.8.19 (major.minor.patch)." >&2
+            exit 1
+          fi
+          MAJOR="${BASH_REMATCH[1]}"
+          MINOR="${BASH_REMATCH[2]}"
+          PATCH="${BASH_REMATCH[3]}"
+          if (( MINOR > 999 || PATCH > 999 )); then
+            echo "Minor and patch numbers must be 999 or lower." >&2
+            exit 1
+          fi
+          VERSION_CODE=$((MAJOR * 1000000 + MINOR * 1000 + PATCH))
+          if (( VERSION_CODE < 27 || VERSION_CODE > 2100000000 )); then
+            echo "The calculated Android versionCode is outside the supported range." >&2
+            exit 1
+          fi
+          echo "version_name=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+
       - name: Compile ARM64-v8a release APK
-        run: gradle --no-daemon --stacktrace assembleRelease
+        env:
+          APP_VERSION_NAME: ${{ steps.android-version.outputs.version_name }}
+          APP_VERSION_CODE: ${{ steps.android-version.outputs.version_code }}
+        run: |
+          gradle --no-daemon --stacktrace \
+            -PAPP_VERSION_NAME="$APP_VERSION_NAME" \
+            -PAPP_VERSION_CODE="$APP_VERSION_CODE" \
+            assembleRelease
 
       - name: Sign Android APK with the SubhuMusic release key
         env:
