@@ -122,7 +122,7 @@ object SongDownloader {
 
     /**
      * Resolve an app-downloaded audio file before trying Media3's online stream resolver.
-     * Video-ID mappings are preferred; the SubhuMusic folder and legacy D.S Music/SpatialFlow folders
+     * Video-ID mappings are preferred; the SubhuMusic folder and legacy folder names from earlier installs
      * provide a migration path for downloads created before mappings were recorded.
      */
     fun findDownloadedUri(
