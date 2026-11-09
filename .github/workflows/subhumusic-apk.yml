@@ -1,4 +1,4 @@
-name: Build SubhuMusic APK
+name: Build optimized SubhuMusic Android APK
 
 on:
   push:
@@ -39,18 +39,61 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          # The legacy 'tools' package was removed from Google's SDK repository.
-          # Install only platform-tools; Android Gradle Plugin resolves the required
-          # platform and build-tools packages for compileSdk automatically.
           packages: platform-tools
 
-      - name: Build debug APK
-        run: ./gradlew --no-daemon --stacktrace assembleDebug
+      - name: Install Android 17 SDK and Build Tools
+        run: sdkmanager --channel=3 "platforms;android-37.0" "build-tools;37.0.0"
 
-      - name: Upload SubhuMusic APK
+      # Release enables the R8 code shrinker and unused-resource removal
+      # configured in app/build.gradle. The ARM64-only split stays enabled.
+      - name: Build optimized ARM64-v8a release
+        run: ./gradlew --no-daemon --stacktrace assembleRelease
+
+      - name: Sign optimized APK with the SubhuMusic release key
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.BATTERYPULSE_KEYSTORE_BASE64 }}
+          SIGNING_KEYSTORE_PASSWORD: ${{ secrets.BATTERYPULSE_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.BATTERYPULSE_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.BATTERYPULSE_KEY_PASSWORD }}
+          SIGNING_KEYSTORE_TYPE: PKCS12
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${SIGNING_KEYSTORE_BASE64:?Missing BATTERYPULSE_KEYSTORE_BASE64}"
+          : "${SIGNING_KEYSTORE_PASSWORD:?Missing BATTERYPULSE_STORE_PASSWORD}"
+          : "${SIGNING_KEY_ALIAS:?Missing BATTERYPULSE_KEY_ALIAS}"
+          : "${SIGNING_KEY_PASSWORD:?Missing BATTERYPULSE_KEY_PASSWORD}"
+
+          BUILD_DIR="app/build/outputs/apk/release"
+          SOURCE_APK="$BUILD_DIR/app-arm64-v8a-release-unsigned.apk"
+          KEYSTORE="$RUNNER_TEMP/subhumusic-release-keystore.p12"
+          ALIGNED_APK="$RUNNER_TEMP/SubhuMusic-arm64-v8a-aligned.apk"
+          OUTPUT_APK="$BUILD_DIR/SubhuMusic.apk"
+          ZIPALIGN="$ANDROID_HOME/build-tools/37.0.0/zipalign"
+          APK_SIGNER="$ANDROID_HOME/build-tools/37.0.0/apksigner"
+
+          test -s "$SOURCE_APK"
+          printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
+          chmod 600 "$KEYSTORE"
+          keytool -list -storetype "$SIGNING_KEYSTORE_TYPE" -keystore "$KEYSTORE" \
+            -storepass "$SIGNING_KEYSTORE_PASSWORD" -alias "$SIGNING_KEY_ALIAS" >/dev/null
+
+          "$ZIPALIGN" -f -p 4 "$SOURCE_APK" "$ALIGNED_APK"
+          "$APK_SIGNER" sign \
+            --ks "$KEYSTORE" \
+            --ks-type "$SIGNING_KEYSTORE_TYPE" \
+            --ks-key-alias "$SIGNING_KEY_ALIAS" \
+            --ks-pass env:SIGNING_KEYSTORE_PASSWORD \
+            --key-pass env:SIGNING_KEY_PASSWORD \
+            --out "$OUTPUT_APK" "$ALIGNED_APK"
+
+          "$APK_SIGNER" verify --verbose "$OUTPUT_APK"
+          ls -lh "$OUTPUT_APK"
+
+      - name: Upload optimized SubhuMusic APK
         uses: actions/upload-artifact@v4
         with:
-          name: SubhuMusic-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: SubhuMusic-Android-optimized
+          path: app/build/outputs/apk/release/SubhuMusic.apk
           if-no-files-found: error
           retention-days: 14
