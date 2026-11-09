@@ -23,7 +23,7 @@ import com.dsann.music.model.SongItem;
 import java.util.Objects;
 
 /**
- * Base Widget Provider for D.S Music.
+ * Base Widget Provider for SubhuMusic.
  * Handles common playback control intents and updates all 3 widget sizes.
  */
 public class SpatialFlowWidgetProvider extends AppWidgetProvider {
@@ -179,7 +179,7 @@ public class SpatialFlowWidgetProvider extends AppWidgetProvider {
 
             } else {
                 if (layoutId == R.layout.widget_medium || layoutId == R.layout.widget_large) {
-                    views.setTextViewText(R.id.widget_song_title, "D.S Music");
+                    views.setTextViewText(R.id.widget_song_title, "SubhuMusic");
                     views.setTextViewText(R.id.widget_artist_name, "Select a song");
                 }
                 if (layoutId == R.layout.widget_medium || layoutId == R.layout.widget_large) {
