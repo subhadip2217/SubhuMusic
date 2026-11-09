@@ -595,7 +595,7 @@ fun LibraryScreen(
                                     activeTab
                                 ) {
                                     value = withContext(Dispatchers.Default) {
-                                        localSongs.filter(::isSubhuMusicDownloadedSong)
+                                        localSongs.filter(::isSpatialFlowDownloadedSong)
                                     }
                                 }
 
@@ -3209,7 +3209,7 @@ private fun accountViewModelRefreshReplay(context: Context) {
 
 
 private fun isSpatialFlowDownloadedSong(song: SongItem): Boolean =
-    isSubhuMusicDownloadedLocation(song.mediaStoreRelativePath, song.path ?: song.data)
+    isSpatialFlowDownloadedLocation(song.mediaStoreRelativePath, song.path ?: song.data)
 
 private fun isSpatialFlowDownloadedLocation(relativePathValue: String?, rawPath: String?): Boolean {
     val relativePath = relativePathValue.orEmpty().trim('/').lowercase(java.util.Locale.ROOT)
