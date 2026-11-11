@@ -33,7 +33,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -117,7 +116,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -3305,13 +3303,13 @@ private fun AboutScreen(
             Box(
                 modifier = Modifier
                     .size(120.dp)
-                    .background(Color(0xFF350C0C), CircleShape),
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
+                Icon(
                     painter = painterResource(R.drawable.ic_applogo),
-                    contentDescription = "SubhuMusic logo",
-                    contentScale = ContentScale.Fit,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(72.dp)
                 )
             }
@@ -4018,20 +4016,12 @@ private fun AppLogoSection(isLandscape: Boolean) {
             .padding(top = if (isLandscape) 8.dp else 16.dp, bottom = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .size(iconSize)
-                .clip(RoundedCornerShape(28.dp))
-                .background(Color(0xFF350C0C)),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(R.drawable.ic_applogo),
-                contentDescription = "SubhuMusic logo",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize().padding(12.dp)
-            )
-        }
+        Icon(
+            painter = painterResource(R.drawable.ic_applogo),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(iconSize)
+        )
         Text(
             text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.displayLarge,
