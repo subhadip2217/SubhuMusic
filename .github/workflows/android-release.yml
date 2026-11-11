@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "New Android release version (for example: v1.8.19)"
+        description: "New Android release version (for example: v1.8.21)"
         required: true
-        default: v1.8.19
+        default: v1.8.21
         type: string
       source_ref:
         description: "Android source branch, tag, or commit to build"
