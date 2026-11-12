@@ -6,8 +6,10 @@
 
 A feature-rich Android music player built to bring streaming discovery, a personal music library, lyrics, and offline listening together in one place.
 
+[![GitHub Stars](https://img.shields.io/github/stars/subhadip2217/SubhuMusic?style=for-the-badge&logo=github&color=f5c542)](https://github.com/subhadip2217/SubhuMusic/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/subhadip2217/SubhuMusic?style=for-the-badge&logo=github&color=8b5cf6)](https://github.com/subhadip2217/SubhuMusic/network/members)
+[![Total Downloads](https://img.shields.io/github/downloads/subhadip2217/SubhuMusic/total?style=for-the-badge&logo=github&color=0891b2)](https://github.com/subhadip2217/SubhuMusic/releases)
 [![Latest Release](https://img.shields.io/github/v/release/subhadip2217/SubhuMusic?display_name=tag&style=for-the-badge&color=7c3aed)](https://github.com/subhadip2217/SubhuMusic/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/subhadip2217/SubhuMusic/total?style=for-the-badge&color=0891b2)](https://github.com/subhadip2217/SubhuMusic/releases)
 [![Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://www.android.com/)
 [![License](https://img.shields.io/github/license/subhadip2217/SubhuMusic?style=for-the-badge)](LICENSE)
 
