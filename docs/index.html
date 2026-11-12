@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090910">
+  <meta name="description" content="Meet SubhuMusic — an Android music player for discovery, lyrics, playlists, offline listening, custom widgets and a music library that feels like yours.">
+  <meta property="og:title" content="SubhuMusic — Your music. Your space.">
+  <meta property="og:description" content="Discover, play, organise and take your music with you. Explore SubhuMusic and download the latest Android release.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://raw.githubusercontent.com/subhadip2217/SubhuMusic/master/app/src/main/ic_launcher-playstore.png">
+  <title>SubhuMusic — Your music. Your space.</title>
+  <link rel="icon" type="image/webp" href="https://raw.githubusercontent.com/subhadip2217/SubhuMusic/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090910;
+      --bg-soft: #10101b;
+      --panel: rgba(22, 22, 36, .78);
+      --panel-solid: #151522;
+      --line: rgba(255,255,255,.09);
+      --text: #f7f6ff;
+      --muted: #a7a6b9;
+      --purple: #9878ff;
+      --purple-2: #6f55e8;
+      --cyan: #68dff2;
+      --lime: #c8fa8b;
+      --radius: 24px;
+      --shadow: 0 28px 90px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 92px; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 76% 4%, rgba(104,78,255,.15), transparent 35%),
+        radial-gradient(ellipse at 8% 30%, rgba(45,194,215,.07), transparent 28%),
+        var(--bg);
+      color: var(--text);
+      font-family: "DM Sans", sans-serif;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .15;
+      z-index: -1;
+      background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 54px 54px;
+      mask-image: linear-gradient(to bottom, black, transparent 80%);
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    img { max-width: 100%; display: block; }
+    svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .container { width: min(1160px, calc(100% - 44px)); margin: 0 auto; }
+    .section { padding: 112px 0; position: relative; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 9px;
+      color: #c6b9ff; font-size: 11px; letter-spacing: .17em; text-transform: uppercase; font-weight: 700;
+    }
+    .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--purple); }
+    h1,h2,h3,p { margin-top: 0; }
+    h1,h2,h3 { font-family: "Space Grotesk", sans-serif; letter-spacing: -.045em; }
+    .section-heading { max-width: 680px; margin-bottom: 46px; }
+    .section-heading h2 { font-size: clamp(34px, 5vw, 58px); line-height: 1.04; margin: 17px 0 16px; }
+    .section-heading p { color: var(--muted); line-height: 1.8; font-size: 16px; max-width: 610px; margin-bottom: 0; }
+    .gradient-text { background: linear-gradient(105deg, #fff 4%, #c4b3ff 47%, #83ecf3 100%); color: transparent; background-clip: text; -webkit-background-clip: text; }
+    .button {
+      min-height: 54px; display: inline-flex; align-items: center; justify-content: center; gap: 11px;
+      padding: 0 22px; border-radius: 15px; border: 1px solid transparent; font-weight: 700; font-size: 14px;
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease, background .25s ease;
+      cursor: pointer;
+    }
+    .button:hover { transform: translateY(-3px); }
+    .button-primary { background: linear-gradient(115deg, #9474ff, #6754e5); color: white; box-shadow: 0 10px 35px rgba(119,91,255,.3); }
+    .button-primary:hover { box-shadow: 0 15px 42px rgba(119,91,255,.45); }
+    .button-secondary { color: var(--text); border-color: var(--line); background: rgba(255,255,255,.045); }
+    .button-secondary:hover { border-color: rgba(171,149,255,.55); background: rgba(151,120,255,.08); }
+    .button svg { width: 18px; height: 18px; }
+    .topbar {
+      position: sticky; top: 0; z-index: 50; border-bottom: 1px solid rgba(255,255,255,.06);
+      background: rgba(9,9,16,.76); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+    }
+    .nav { height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; font-family: "Space Grotesk",sans-serif; font-weight: 700; font-size: 19px; letter-spacing: -.04em; }
+    .brand img { width: 37px; height: 37px; border-radius: 12px; box-shadow: 0 6px 22px rgba(127,100,255,.25); }
+    .brand span span { color: var(--purple); }
+    .nav-links { display: flex; gap: 30px; align-items: center; color: #b8b6c9; font-size: 13px; font-weight: 600; }
+    .nav-links a { transition: color .2s ease; }
+    .nav-links a:hover { color: white; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .nav-download { min-height: 43px; padding: 0 16px; border-radius: 12px; font-size: 12px; }
+    .menu-toggle { display: none; width: 44px; height: 44px; color: white; background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+    .hero { min-height: 680px; padding: 92px 0 80px; display: flex; align-items: center; overflow: hidden; }
+    .hero-grid { display: grid; grid-template-columns: 1.04fr .96fr; gap: 54px; align-items: center; }
+    .hero-copy { position: relative; z-index: 2; }
+    .release-pill {
+      display: inline-flex; align-items: center; gap: 9px; padding: 8px 12px; border: 1px solid rgba(164,141,255,.24);
+      border-radius: 99px; background: rgba(135,108,255,.09); color: #d8ceff; font-size: 11px; font-weight: 700; letter-spacing: .04em;
+    }
+    .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 5px rgba(200,250,139,.1), 0 0 14px var(--lime); }
+    .hero h1 { font-size: clamp(48px, 6.1vw, 78px); line-height: .99; margin: 25px 0 23px; max-width: 700px; }
+    .hero-copy > p { color: #b6b5c8; font-size: 17px; line-height: 1.8; max-width: 560px; margin-bottom: 30px; }
+    .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .hero-note { display: flex; align-items: center; gap: 8px; margin-top: 18px; color: #858398; font-size: 12px; }
+    .hero-note svg { width: 15px; height: 15px; color: var(--lime); }
+    .hero-art { position: relative; min-height: 520px; display: flex; align-items: center; justify-content: center; isolation: isolate; }
+    .orb { position: absolute; width: 440px; height: 440px; border-radius: 50%; background: radial-gradient(circle, rgba(124,95,255,.28), rgba(61,203,224,.09) 48%, transparent 72%); filter: blur(12px); z-index: -1; }
+    .ring { position: absolute; width: 490px; height: 490px; border: 1px solid rgba(167,143,255,.13); border-radius: 50%; transform: rotateX(65deg) rotateZ(-24deg); }
+    .ring::before,.ring::after { content: ""; position: absolute; inset: 35px; border: 1px solid rgba(104,223,242,.12); border-radius: 50%; }
+    .ring::after { inset: 80px; border-color: rgba(167,143,255,.12); }
+    .phone {
+      position: relative; width: 244px; height: 485px; padding: 9px; border-radius: 37px;
+      background: linear-gradient(145deg, #444252, #11111a 30%, #272538 70%, #555168);
+      border: 1px solid rgba(255,255,255,.28); box-shadow: 0 35px 90px rgba(0,0,0,.65), 0 0 55px rgba(125,97,255,.17);
+      transform: rotate(-7deg); z-index: 2;
+    }
+    .phone::before { content: ""; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 76px; height: 17px; border-radius: 99px; background: #050509; z-index: 3; }
+    .phone-screen { width: 100%; height: 100%; overflow: hidden; border-radius: 29px; background: #111; }
+    .phone-screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+    .phone-back {
+      position: absolute; width: 222px; height: 420px; right: 4px; top: 65px; border-radius: 32px; padding: 8px;
+      background: linear-gradient(145deg, #5c5477, #15141e 55%, #5c5477); border: 1px solid rgba(255,255,255,.2);
+      box-shadow: 0 25px 70px rgba(0,0,0,.5); transform: rotate(9deg) translateX(28px); z-index: 1; opacity: .83;
+    }
+    .phone-back .phone-screen { border-radius: 25px; }
+    .float-chip {
+      position: absolute; z-index: 4; display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+      background: rgba(25,24,39,.86); backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 15px; box-shadow: 0 14px 40px rgba(0,0,0,.3); font-size: 11px; color: #d4d1e6;
+    }
+    .float-chip strong { display: block; color: white; font-size: 12px; margin-bottom: 2px; }
+    .float-chip svg { width: 18px; height: 18px; color: var(--cyan); }
+    .chip-a { top: 74px; left: -4px; }
+    .chip-b { right: -8px; bottom: 85px; }
+    .mini-bars { display: flex; align-items: center; gap: 3px; height: 20px; }
+    .mini-bars i { width: 3px; border-radius: 9px; background: var(--lime); animation: bars 1s ease-in-out infinite alternate; }
+    .mini-bars i:nth-child(1){height:7px}.mini-bars i:nth-child(2){height:14px;animation-delay:.2s}.mini-bars i:nth-child(3){height:19px;animation-delay:.35s}.mini-bars i:nth-child(4){height:10px;animation-delay:.1s}.mini-bars i:nth-child(5){height:16px;animation-delay:.4s}
+    @keyframes bars { to { transform: scaleY(.35); opacity: .55; } }
+    .hero-bottom { display: flex; gap: 25px; flex-wrap: wrap; align-items: center; margin-top: 45px; color: #89879d; font-size: 11px; }
+    .hero-bottom span { display: inline-flex; gap: 7px; align-items: center; }
+    .hero-bottom svg { width: 15px; height: 15px; color: #a897ff; }
+    .stats-wrap { margin-top: -22px; position: relative; z-index: 3; }
+    .stats { display: grid; grid-template-columns: repeat(4,1fr); border: 1px solid var(--line); background: rgba(21,20,34,.82); backdrop-filter: blur(16px); border-radius: 20px; overflow: hidden; box-shadow: var(--shadow); }
+    .stat { padding: 22px 25px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 5px; }
+    .stat:last-child { border-right: 0; }
+    .stat-value { font-family: "Space Grotesk",sans-serif; font-size: 25px; font-weight: 700; letter-spacing: -.04em; }
+    .stat-label { color: #9290a5; text-transform: uppercase; font-size: 9px; font-weight: 700; letter-spacing: .16em; }
+    .stat-note { color: #69687a; font-size: 10px; }
+    .feature-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 15px; }
+    .feature-card {
+      position: relative; min-height: 235px; padding: 27px; border-radius: 21px; border: 1px solid var(--line);
+      background: linear-gradient(145deg, rgba(26,25,42,.86), rgba(17,17,28,.8)); overflow: hidden;
+      transition: transform .25s ease, border-color .25s ease, background .25s ease;
+    }
+    .feature-card:hover { transform: translateY(-5px); border-color: rgba(161,139,255,.38); background: linear-gradient(145deg, rgba(34,31,57,.95), rgba(17,17,28,.9)); }
+    .feature-card::after { content: ""; position: absolute; width: 150px; height: 150px; border-radius: 50%; background: rgba(140,111,255,.1); filter: blur(45px); right: -55px; top: -55px; }
+    .feature-icon { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 13px; background: rgba(151,120,255,.13); color: #c5b6ff; border: 1px solid rgba(151,120,255,.15); margin-bottom: 27px; }
+    .feature-icon svg { width: 20px; height: 20px; }
+    .feature-card h3 { font-size: 20px; margin-bottom: 9px; letter-spacing: -.03em; }
+    .feature-card p { color: #9d9bad; line-height: 1.7; font-size: 13px; margin: 0; max-width: 320px; }
+    .special { padding-top: 45px; }
+    .special-panel {
+      display: grid; grid-template-columns: .95fr 1.05fr; gap: 50px; align-items: center;
+      border: 1px solid rgba(158,137,255,.17); border-radius: 28px; padding: 50px; overflow: hidden;
+      background: radial-gradient(circle at 82% 35%, rgba(98,86,208,.19), transparent 36%), linear-gradient(135deg, #181728, #11111c 62%);
+      box-shadow: var(--shadow);
+    }
+    .special-panel h2 { font-size: clamp(32px,4vw,48px); line-height: 1.05; margin: 17px 0 17px; }
+    .special-panel p { color: var(--muted); line-height: 1.8; font-size: 14px; }
+    .special-list { display: grid; gap: 13px; margin-top: 25px; }
+    .special-point { display: flex; gap: 11px; align-items: flex-start; color: #d7d5e4; font-size: 13px; line-height: 1.6; }
+    .special-point svg { flex: 0 0 17px; width: 17px; height: 17px; color: var(--lime); margin-top: 1px; }
+    .download-visual { position: relative; min-height: 320px; display: flex; align-items: center; justify-content: center; }
+    .download-card {
+      width: min(100%, 390px); background: rgba(17,17,28,.9); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 23px; padding: 20px; box-shadow: 0 24px 80px rgba(0,0,0,.45); transform: rotate(3deg);
+    }
+    .download-title { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+    .download-title img { width: 48px; height: 48px; border-radius: 14px; }
+    .download-title strong { font-size: 14px; display: block; margin-bottom: 4px; }
+    .download-title small { color: #89879a; font-size: 11px; }
+    .download-progress { height: 7px; border-radius: 99px; background: #29283a; overflow: hidden; margin: 15px 0 8px; }
+    .download-progress span { height: 100%; width: 72%; display: block; background: linear-gradient(90deg, var(--purple), var(--cyan)); border-radius: inherit; }
+    .download-meta { display: flex; justify-content: space-between; color: #9592a7; font-size: 10px; }
+    .download-file { margin-top: 22px; padding: 13px 14px; border-radius: 13px; background: rgba(255,255,255,.04); display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #d9d7e7; }
+    .download-file svg { color: var(--lime); width: 17px; }
+    .art-glow { position: absolute; width: 220px; height: 220px; border-radius: 50%; background: rgba(99,220,233,.13); filter: blur(55px); }
+    .gallery-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 17px; align-items: start; }
+    .shot {
+      border: 1px solid rgba(255,255,255,.13); background: #151421; border-radius: 24px; padding: 8px; overflow: hidden;
+      box-shadow: 0 18px 45px rgba(0,0,0,.28); transition: transform .3s ease,border-color .3s ease; cursor: zoom-in;
+    }
+    .shot:nth-child(even) { margin-top: 38px; }
+    .shot:hover { transform: translateY(-7px) rotate(-1deg); border-color: rgba(172,151,255,.45); }
+    .shot img { width: 100%; aspect-ratio: 9/16; object-fit: cover; object-position: top; border-radius: 17px; background: #111; }
+    .shot figcaption { padding: 13px 7px 7px; font-size: 11px; color: #a9a7bb; }
+    .gallery-note { color: #777589; font-size: 11px; margin-top: 21px; }
+    .why-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 75px; align-items: start; }
+    .why-copy { position: sticky; top: 115px; }
+    .why-copy h2 { font-size: clamp(38px,4.5vw,58px); line-height: 1.03; margin: 17px 0 18px; }
+    .why-copy p { color: var(--muted); font-size: 15px; line-height: 1.85; }
+    .why-items { display: grid; gap: 12px; }
+    .why-item { display: grid; grid-template-columns: 50px 1fr; gap: 17px; align-items: start; padding: 22px; border: 1px solid var(--line); border-radius: 19px; background: rgba(24,23,39,.55); }
+    .why-number { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; background: rgba(151,120,255,.11); color: #c4b3ff; font-family: "Space Grotesk",sans-serif; font-size: 14px; font-weight: 700; }
+    .why-item h3 { font-size: 17px; margin: 2px 0 6px; }
+    .why-item p { margin: 0; color: #9694a8; font-size: 12px; line-height: 1.7; }
+    .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; counter-reset: step; }
+    .step { border: 1px solid var(--line); border-radius: 20px; padding: 25px; background: rgba(22,21,35,.7); }
+    .step-number { font-family: "Space Grotesk",sans-serif; color: #a48bff; font-size: 32px; font-weight: 700; margin-bottom: 25px; }
+    .step h3 { font-size: 18px; margin-bottom: 8px; }
+    .step p { color: #9694a8; font-size: 12px; line-height: 1.7; margin: 0; }
+    .compat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-top: 17px; }
+    .compat-card { padding: 20px; border-radius: 18px; background: rgba(255,255,255,.035); border: 1px solid var(--line); }
+    .compat-card span { display: block; color: #868499; text-transform: uppercase; font-size: 9px; letter-spacing: .15em; margin-bottom: 9px; font-weight: 700; }
+    .compat-card strong { font-family: "Space Grotesk",sans-serif; font-size: 17px; }
+    .faq-grid { display: grid; grid-template-columns: .72fr 1.28fr; gap: 70px; align-items: start; }
+    .faq-grid .section-heading { margin: 0; position: sticky; top: 115px; }
+    .faq-list { display: grid; gap: 10px; }
+    details { border: 1px solid var(--line); border-radius: 16px; background: rgba(22,21,35,.7); overflow: hidden; }
+    summary { list-style: none; cursor: pointer; padding: 20px 22px; display: flex; align-items: center; justify-content: space-between; gap: 20px; font-weight: 700; font-size: 13px; }
+    summary::-webkit-details-marker { display: none; }
+    summary svg { width: 16px; height: 16px; color: #a897ff; transition: transform .2s ease; }
+    details[open] summary svg { transform: rotate(45deg); }
+    details p { padding: 0 22px 20px; margin: 0; color: #9c9aaf; font-size: 12px; line-height: 1.8; }
+    .cta-section { padding: 40px 0 110px; }
+    .cta-panel {
+      position: relative; text-align: center; overflow: hidden; padding: 74px 25px; border-radius: 30px;
+      background: radial-gradient(circle at 50% 0%, rgba(174,146,255,.27), transparent 47%), linear-gradient(135deg,#211c3d,#11111d 70%);
+      border: 1px solid rgba(174,151,255,.25); box-shadow: var(--shadow);
+    }
+    .cta-panel::before,.cta-panel::after { content:""; position:absolute; border:1px solid rgba(255,255,255,.08); border-radius:50%; width:440px;height:440px; top:-300px; left:calc(50% - 220px); }
+    .cta-panel::after { width:620px;height:620px;top:-390px;left:calc(50% - 310px); }
+    .cta-panel > * { position: relative; z-index: 1; }
+    .cta-panel h2 { font-size: clamp(37px,5.7vw,65px); line-height: 1; margin: 17px 0; }
+    .cta-panel p { max-width: 560px; margin: 0 auto 28px; color: #b6b2ca; line-height: 1.8; font-size: 14px; }
+    .cta-panel .button { min-width: 220px; }
+    .cta-meta { color: #88869c; font-size: 10px; margin-top: 15px; }
+    footer { border-top: 1px solid var(--line); padding: 35px 0 100px; }
+    .footer-main { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
+    .footer-brand p { font-size: 11px; color: #838195; margin: 10px 0 0; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 22px; color: #a5a3b6; font-size: 11px; }
+    .footer-links a:hover { color: white; }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,.06); padding-top: 19px; margin-top: 27px; display: flex; justify-content: space-between; gap: 20px; color: #6e6c80; font-size: 10px; line-height: 1.7; }
+    .floating-download {
+      position: fixed; bottom: 24px; right: 24px; z-index: 60; width: 58px; height: 58px; display: grid; place-items: center;
+      border-radius: 19px; background: linear-gradient(145deg,#9c7dff,#6552e6); color: white; box-shadow: 0 12px 35px rgba(111,83,235,.48);
+      border: 1px solid rgba(255,255,255,.25); transition: transform .25s ease,box-shadow .25s ease;
+    }
+    .floating-download:hover { transform: translateY(-5px) scale(1.04); box-shadow: 0 18px 40px rgba(111,83,235,.62); }
+    .floating-download svg { width: 23px; height: 23px; }
+    .modal { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(3,3,8,.92); backdrop-filter: blur(16px); align-items: center; justify-content: center; padding: 30px; }
+    .modal.open { display: flex; }
+    .modal img { max-height: 88vh; max-width: min(440px,90vw); border-radius: 18px; box-shadow: 0 30px 90px rgba(0,0,0,.6); }
+    .modal-close { position: absolute; top: 24px; right: 24px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: rgba(255,255,255,.08); color: white; cursor: pointer; }
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease,transform .7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    @media (max-width: 980px) {
+      .hero-grid { gap: 25px; grid-template-columns: 1fr  .85fr; }
+      .hero-art { transform: scale(.9); transform-origin: center; margin: -25px -30px; }
+      .nav-links { gap: 18px; }
+      .feature-grid { grid-template-columns: repeat(2,1fr); }
+      .special-panel { gap: 25px; padding: 35px; }
+      .why-grid { gap: 35px; }
+      .faq-grid { gap: 35px; }
+    }
+    @media (max-width: 740px) {
+      .container { width: min(100% - 32px, 560px); }
+      .section { padding: 78px 0; }
+      .nav { height: 68px; }
+      .menu-toggle { display: grid; place-items: center; }
+      .nav-links { display: none; position: absolute; top: 68px; left: 0; right: 0; padding: 18px 22px 23px; background: rgba(10,10,17,.97); border-bottom: 1px solid var(--line); flex-direction: column; align-items: stretch; gap: 0; }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 13px 4px; }
+      .nav-download { display: none; }
+      .hero { min-height: auto; padding: 68px 0 50px; }
+      .hero-grid { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
+      .hero h1 { font-size: clamp(47px,12vw,68px); }
+      .hero-copy > p { font-size: 15px; }
+      .hero-art { min-height: 420px; margin: 0; transform: scale(.82); transform-origin: top center; margin-bottom: -75px; }
+      .phone { width: 211px; height: 420px; }
+      .phone-back { width: 194px; height: 365px; }
+      .orb { width: 360px; height: 360px; }
+      .ring { width: 390px; height: 390px; }
+      .chip-a { left: -13px; top: 55px; }
+      .chip-b { right: -10px; bottom: 65px; }
+      .hero-bottom { margin-top: 28px; gap: 13px 19px; }
+      .stats-wrap { margin-top: 0; }
+      .stats { grid-template-columns: repeat(2,1fr); }
+      .stat { padding: 18px; border-bottom: 1px solid var(--line); }
+      .stat:nth-child(2) { border-right: 0; }
+      .stat:nth-child(3),.stat:nth-child(4) { border-bottom: 0; }
+      .stat-value { font-size: 22px; }
+      .section-heading { margin-bottom: 30px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .feature-card { min-height: auto; padding: 23px; }
+      .feature-icon { margin-bottom: 19px; }
+      .special { padding-top: 10px; }
+      .special-panel { grid-template-columns: 1fr; padding: 28px 22px; }
+      .download-visual { min-height: 250px; }
+      .gallery-grid { grid-template-columns: repeat(2,1fr); gap: 12px; }
+      .shot { border-radius: 18px; padding: 6px; }
+      .shot:nth-child(even) { margin-top: 25px; }
+      .shot img { border-radius: 13px; }
+      .why-grid { grid-template-columns: 1fr; gap: 25px; }
+      .why-copy { position: static; }
+      .steps { grid-template-columns: 1fr; }
+      .step { padding: 22px; }
+      .step-number { margin-bottom: 12px; }
+      .compat-row { grid-template-columns: 1fr; }
+      .faq-grid { grid-template-columns: 1fr; gap: 25px; }
+      .faq-grid .section-heading { position: static; }
+      .cta-section { padding: 15px 0 75px; }
+      .cta-panel { padding: 58px 20px; border-radius: 23px; }
+      .footer-main,.footer-bottom { flex-direction: column; align-items: flex-start; }
+      .footer-links { gap: 15px; }
+      .floating-download { width: 54px; height: 54px; right: 16px; bottom: 16px; border-radius: 17px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <svg aria-hidden="true" width="0" height="0" style="position:absolute;overflow:hidden">
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 12 7-12 7z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+    <symbol id="i-lyrics" viewBox="0 0 24 24"><path d="M4 5h16M4 10h16M4 15h9M4 20h7"/><path d="M18 15v5l4-2.5z"/></symbol>
+    <symbol id="i-download-cloud" viewBox="0 0 24 24"><path d="M8 17H6a4 4 0 1 1 .8-7.9A6 6 0 0 1 18 10a3.5 3.5 0 0 1 0 7h-2"/><path d="m9 15 3 3 3-3M12 18v-8"/></symbol>
+    <symbol id="i-library" viewBox="0 0 24 24"><path d="M4 5h16v15H4zM8 3v4M16 3v4M8 11h8M8 15h5"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 8.6c0 5-8.8 11-8.8 11s-8.8-6-8.8-11A4.6 4.6 0 0 1 12 6.4a4.6 4.6 0 0 1 8.8 2.2Z"/></symbol>
+    <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M3 14v-3a9 9 0 0 1 18 0v3"/><path d="M3 14h4v7H6a3 3 0 0 1-3-3zM21 14h-4v7h1a3 3 0 0 0 3-3z"/></symbol>
+    <symbol id="i-widget" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.8-2L20 12M4 12l2.6 5a7 7 0 0 0 11.8-2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 6v-3.9c0-1.1.1-1.6-.5-2.2 3.3-.4 6.8-1.6 6.8-7.4a5.7 5.7 0 0 0-1.5-4 5.3 5.3 0 0 0-.1-3.9s-1.2-.4-4.1 1.5a14 14 0 0 0-7.5 0C5.2.2 4 .6 4 .6a5.3 5.3 0 0 0-.1 3.9 5.7 5.7 0 0 0-1.5 4c0 5.8 3.5 7 6.8 7.4-.6.5-.6 1.2-.6 2.2V22"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 3h7v7M10 14 21 3"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="container nav">
+      <a class="brand" href="#top" aria-label="SubhuMusic home">
+        <img src="https://raw.githubusercontent.com/subhadip2217/SubhuMusic/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" alt="SubhuMusic app icon">
+        <span>Subhu<span>Music</span></span>
+      </a>
+      <nav class="nav-links" id="navLinks" aria-label="Main navigation">
+        <a href="#features">Features</a>
+        <a href="#speciality">What makes it special</a>
+        <a href="#screenshots">Screenshots</a>
+        <a href="#install">Get started</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="button button-primary nav-download" href="https://github.com/subhadip2217/SubhuMusic/releases/latest/download/SubhuMusic-Android.apk" data-download>
+          <svg><use href="#i-download"></use></svg> Download
+        </a>
+        <button class="menu-toggle" id="menuToggle" aria-label="Open navigation" aria-expanded="false"><svg><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="release-pill"><span class="pulse-dot"></span> ANDROID MUSIC PLAYER <span>·</span> <span id="heroVersion">LATEST RELEASE</span></div>
+          <h1>Your music.<br><span class="gradient-text">Your universe.</span></h1>
+          <p>Discover music, settle into the perfect listening session, follow lyrics, organise your collection and take supported downloads offline — all in one thoughtfully crafted Android app.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="https://github.com/subhadip2217/SubhuMusic/releases/latest/download/SubhuMusic-Android.apk" data-download>
+              <svg><use href="#i-download"></use></svg> Download latest APK
+            </a>
+            <a class="button button-secondary" href="#features">Explore the features <svg><use href="#i-arrow"></use></svg></a>
+          </div>
+          <div class="hero-note"><svg><use href="#i-shield"></use></svg><span>Independent project · Android · ARM64 devices</span></div>
+          <div class="hero-bottom">
+            <span><svg><use href="#i-music"></use></svg> Discover & play</span>
+            <span><svg><use href="#i-lyrics"></use></svg> Lyrics when available</span>
+            <span><svg><use href="#i-download-cloud"></use></svg> Offline-ready library</span>
+          </div>
+        </div>
+        <div class="hero-art" aria-label="SubhuMusic app screenshots">
+          <div class="orb"></div><div class="ring"></div>
+          <div class="phone-back"><div class="phone-screen"><img src="https://raw.githubusercontent.com/subhadip2217/SubhuMusic/master/AppScreenShot/7.png" alt="SubhuMusic app interface preview" fetchpriority="high"></div></div>
+          <div class="phone"><div class="phone-screen"><img src="https://raw.githubusercontent.com/subhadip2217/SubhuMusic/master/AppScreenShot/6.png" alt="SubhuMusic music player screenshot" fetchpriority="high"></div></div>
+          <div class="float-chip chip-a"><div class="mini-bars"><i></i><i></i><i></i><i></i><i></i></div><div><strong>Made for listening</strong>Let the music flow</div></div>
+          <div class="float-chip chip-b"><svg><use href="#i-heart"></use></svg><div><strong>Your library, your way</strong>Keep the tracks you love</div></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container stats-wrap">
+      <div class="stats reveal">
+        <div class="stat"><span class="stat-value" id="starsCount">—</span><span class="stat-label">GitHub stars</span><span class="stat-note">Community appreciation</span></div>
+        <div class="stat"><span class="stat-value" id="forksCount">—</span><span class="stat-label">Forks</span><span class="stat-note">Built in the open</span></div>
+        <div class="stat"><span class="stat-value" id="downloadsCount">—</span><span class="stat-label">APK downloads</span><span class="stat-note">Across GitHub releases</span></div>
+        <div class="stat"><span class="stat-value" id="releaseCount">v—</span><span class="stat-label">Latest version</span><span class="stat-note" id="releaseDate">Checking release…</span></div>
+      </div>
+    </div>
+
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">The listening experience</span>
+          <h2>More than a player.<br><span class="gradient-text">A place for your music.</span></h2>
+          <p>SubhuMusic brings discovery, playback and personal music management together. Here are the tools that make everyday listening feel more complete.</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card reveal">
+            <div class="feature-icon"><svg><use href="#i-search"></use></svg></div>
+            <h3>Discover something new</h3>
+            <p>Search and explore music, then move straight into a listening session without losing the flow.</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon"><svg><use href="#i-headphones"></use></svg></div>
+            <h3>A focused player</h3>
+            <p>Enjoy a dedicated player with playback controls, queue management and support for background listening.</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon"><svg><use href="#i-lyrics"></use></svg></div>
+            <h3>Stay close to the lyrics</h3>
+            <p>Bring words into the listening experience, with synchronised lyrics where they are available.</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon"><svg><use href="#i-library"></use></svg></div>
+            <h3>Your music library</h3>
+            <p>Keep local audio, favourites, playlists and listening history organised in one familiar place.</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon"><svg><use href="#i-download-cloud"></use></svg></div>
+            <h3>Take music offline</h3>
+            <p>Save supported tracks to your device and keep listening when a connection is not available.</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon"><svg><use href="#i-widget"></use></svg></div>
+            <h3>Controls on your home screen</h3>
+            <p>Use SubhuMusic's Android widgets to reach playback controls without opening the full app.</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon"><svg><use href="#i-heart"></use></svg></div>
+            <h3>Keep your favourites close</h3>
+            <p>Return to the songs you love with favourites, playlists and listening history.</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon"><svg><use href="#i-music"></use></svg></div>
+            <h3>Manage your audio</h3>
+            <p>Work with your downloaded music, edit audio tags and keep your collection tidy.</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon"><svg><use href="#i-refresh"></use></svg></div>
+            <h3>Stay up to date</h3>
+            <p>Check for new releases and get the latest improvements as the project continues to evolve.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section special" id="speciality">
+      <div class="container">
+        <div class="special-panel reveal">
+          <div>
+            <span class="eyebrow">The SubhuMusic speciality</span>
+            <h2>Offline music that feels <span class="gradient-text">properly organised.</span></h2>
+            <p>Saving a track should be more than putting a file somewhere. SubhuMusic's supported download flow is designed to make offline music easier to recognise and enjoy in your library.</p>
+            <div class="special-list">
+              <div class="special-point"><svg><use href="#i-check"></use></svg><span>Readable song titles and artist information in supported downloads.</span></div>
+              <div class="special-point"><svg><use href="#i-check"></use></svg><span>Album artwork can be embedded into the audio file for a richer library view.</span></div>
+              <div class="special-point"><svg><use href="#i-check"></use></svg><span>Background download progress and completion notifications keep you informed.</span></div>
+              <div class="special-point"><svg><use href="#i-check"></use></svg><span>Saved audio is organised in your device's music storage for easier access.</span></div>
+            </div>
+          </div>
+          <div class="download-visual">
+            <div class="art-glow"></div>
+            <div class="download-card">
+              <div class="download-title">
+                <img src="https://raw.githubusercontent.com/subhadip2217/SubhuMusic/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" alt="">
+                <div><strong>Offline collection</strong><small>SubhuMusic · Download manager</small></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;color:#e9e6f8;font-size:12px"><strong>Preparing your music</strong><span style="color:#b9a8ff">72%</span></div>
+              <div class="download-progress"><span></span></div>
+              <div class="download-meta"><span>Adding track details</span><span>Almost there</span></div>
+              <div class="download-file"><span>♫ &nbsp; Song title · Artist.mp3</span><svg><use href="#i-check"></use></svg></div>
+              <div class="download-file" style="margin-top:8px"><span>▧ &nbsp; Cover artwork embedded</span><svg><use href="#i-check"></use></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="screenshots">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">A closer look</span>
+          <h2>Made to look as good<br>as your music <span class="gradient-text">sounds.</span></h2>
+          <p>Explore real screenshots from the SubhuMusic Android app. Tap any screen to view it larger.</p>
+        </div>
+        <div class="gallery-grid">
+          <figure class="shot reveal"><img src="https://raw.githubusercontent.com/subhadip2217/SubhuMusic/master/AppScreenShot/5.png" alt="SubhuMusic Android app screenshot 5" loading="lazy"><figcaption>01 / The app experience</figcaption></figure>
+          <figure class="shot reveal"><img src="https://raw.githubusercontent.com/subhadip2217/SubhuMusic/master/AppScreenShot/6.png" alt="SubhuMusic Android app screenshot 6" loading="lazy"><figcaption>02 / Music playback</figcaption></figure>
+          <figure class="shot reveal"><img src="https://raw.githubusercontent.com/subhadip2217/SubhuMusic/master/AppScreenShot/7.png" alt="SubhuMusic Android app screenshot 7" loading="lazy"><figcaption>03 / Your music space</figcaption></figure>
+          <figure class="shot reveal"><img src="https://raw.githubusercontent.com/subhadip2217/SubhuMusic/master/AppScreenShot/10.png" alt="SubhuMusic Android app screenshot 10" loading="lazy"><figcaption>04 / More to explore</figcaption></figure>
+        </div>
+        <p class="gallery-note">Screens shown are actual project screenshots. Features and layouts may evolve between releases.</p>
+      </div>
+    </section>
+
+    <section class="section" id="why">
+      <div class="container why-grid">
+        <div class="why-copy reveal">
+          <span class="eyebrow">Why SubhuMusic?</span>
+          <h2>Because your music deserves <span class="gradient-text">one home.</span></h2>
+          <p>Some days you want to discover a new track. Other days you want your local collection, lyrics or offline favourites. SubhuMusic is built to bring those listening habits into one Android experience.</p>
+          <a class="button button-secondary" href="https://github.com/subhadip2217/SubhuMusic" target="_blank" rel="noopener">Explore the project <svg><use href="#i-external"></use></svg></a>
+        </div>
+        <div class="why-items">
+          <article class="why-item reveal"><div class="why-number">01</div><div><h3>One app, multiple ways to listen</h3><p>Move between discovery, local audio, favourites, playlists and your listening history from one place.</p></div></article>
+          <article class="why-item reveal"><div class="why-number">02</div><div><h3>Offline listening is part of the experience</h3><p>Supported downloads and local music keep your listening options open when you are away from a connection.</p></div></article>
+          <article class="why-item reveal"><div class="why-number">03</div><div><h3>Details that make a difference</h3><p>Audio tags, embedded artwork, background playback and home-screen widgets make the small moments feel considered.</p></div></article>
+          <article class="why-item reveal"><div class="why-number">04</div><div><h3>Built in the open</h3><p>SubhuMusic is an independent project with its source code available on GitHub under the Apache 2.0 licence.</p></div></article>
+          <article class="why-item reveal"><div class="why-number">05</div><div><h3>A compact Android release</h3><p>The current APK is around 11.2 MB, giving you a focused app download rather than a large installation package.</p></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="install">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Start listening</span>
+          <h2>Three steps.<br><span class="gradient-text">Then press play.</span></h2>
+          <p>Get the latest APK directly from the official SubhuMusic GitHub release. The download button always follows the latest published version.</p>
+        </div>
+        <div class="steps">
+          <article class="step reveal"><div class="step-number">01</div><h3>Get the latest APK</h3><p>Tap the download button. It opens the latest SubhuMusic APK release asset on GitHub.</p></article>
+          <article class="step reveal"><div class="step-number">02</div><h3>Install on Android</h3><p>Open the downloaded APK. Android may ask you to allow your browser or file manager to install apps from that source.</p></article>
+          <article class="step reveal"><div class="step-number">03</div><h3>Make it yours</h3><p>Open SubhuMusic, explore your music and set up your listening space.</p></article>
+        </div>
+        <div class="compat-row reveal">
+          <div class="compat-card"><span>Minimum Android</span><strong>Android 6.0+</strong></div>
+          <div class="compat-card"><span>Supported architecture</span><strong>ARM64-v8a</strong></div>
+          <div class="compat-card"><span>Latest APK size</span><strong id="apkSize">~11.2 MB</strong></div>
+        </div>
+        <p class="gallery-note">Compatibility note: this release is built for ARM64-v8a devices. 32-bit-only Android devices are not supported by this APK.</p>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="container faq-grid">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Good to know</span>
+          <h2>Questions?<br><span class="gradient-text">We've got you.</span></h2>
+          <p>A few helpful details before you install SubhuMusic.</p>
+        </div>
+        <div class="faq-list reveal">
+          <details><summary>Is SubhuMusic an Android app? <svg><use href="#i-plus"></use></svg></summary><p>Yes. SubhuMusic is an Android music player. This website introduces the app and links to its official GitHub releases.</p></details>
+          <details><summary>Does the download button always get the newest version? <svg><use href="#i-plus"></use></svg></summary><p>Yes. The button uses GitHub's latest-release download route for the file named SubhuMusic-Android.apk. When a new release is published with that same asset filename, the button automatically points to it.</p></details>
+          <details><summary>Which Android devices are supported? <svg><use href="#i-plus"></use></svg></summary><p>The current release targets Android 6.0 and newer, and this APK is built for the ARM64-v8a architecture. Check your device's compatibility before installing.</p></details>
+          <details><summary>Can I listen offline? <svg><use href="#i-plus"></use></svg></summary><p>You can play music stored on your device and use the app's supported download feature for offline listening. Online availability and download eligibility can vary by source, region and rights.</p></details>
+          <details><summary>Are lyrics always synchronised? <svg><use href="#i-plus"></use></svg></summary><p>Lyrics are supported, and synchronised lyrics can be shown when available for a track. Availability is not guaranteed for every song.</p></details>
+          <details><summary>Is SubhuMusic affiliated with YouTube or Google? <svg><use href="#i-plus"></use></svg></summary><p>No. SubhuMusic is an independent project and is not affiliated with, endorsed by or officially connected to YouTube, YouTube Music, Google or any music streaming service.</p></details>
+          <details><summary>Where can I report a problem or suggest a feature? <svg><use href="#i-plus"></use></svg></summary><p>Visit the GitHub issue tracker to report bugs or share ideas. Include your app version, Android version, device model and steps to reproduce the issue. Never post passwords or private keys.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-panel reveal">
+          <span class="eyebrow">Your next track is waiting</span>
+          <h2>Make room for <span class="gradient-text">more music.</span></h2>
+          <p>Discover the SubhuMusic experience. Download the latest Android release and bring your music into one space.</p>
+          <a class="button button-primary" href="https://github.com/subhadip2217/SubhuMusic/releases/latest/download/SubhuMusic-Android.apk" data-download><svg><use href="#i-download"></use></svg> Download SubhuMusic <svg><use href="#i-arrow"></use></svg></a>
+          <div class="cta-meta">Latest release: <span id="ctaVersion">checking…</span> · Android 6.0+ · ARM64-v8a</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-main">
+        <div class="footer-brand">
+          <a class="brand" href="#top"><img src="https://raw.githubusercontent.com/subhadip2217/SubhuMusic/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" alt=""><span>Subhu<span>Music</span></span></a>
+          <p>Your music. Your space. Your soundtrack.</p>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/subhadip2217/SubhuMusic" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/subhadip2217/SubhuMusic/releases" target="_blank" rel="noopener">All releases</a>
+          <a href="https://github.com/subhadip2217/SubhuMusic/issues" target="_blank" rel="noopener">Report a bug</a>
+          <a href="https://www.instagram.com/subhadip.tantubay/?hl=en" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.youtube.com/@subhadip.tantubay" target="_blank" rel="noopener">YouTube</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span id="year"></span> SubhuMusic · Created and maintained by Subhadip Tantubay.</span>
+        <span>Independent community project. All third-party names and trademarks belong to their respective owners.</span>
+      </div>
+    </div>
+  </footer>
+
+  <a class="floating-download" href="https://github.com/subhadip2217/SubhuMusic/releases/latest/download/SubhuMusic-Android.apk" data-download aria-label="Download the latest SubhuMusic APK" title="Download latest APK">
+    <svg><use href="#i-download"></use></svg>
+  </a>
+
+  <div class="modal" id="imageModal" role="dialog" aria-modal="true" aria-label="Screenshot preview">
+    <button class="modal-close" id="modalClose" aria-label="Close image preview"><svg><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    <img src="" alt="Expanded SubhuMusic screenshot" id="modalImage">
+  </div>
+
+  <script>
+    (function () {
+      const owner = "subhadip2217";
+      const repoName = "SubhuMusic";
+      const apiBase = "https://api.github.com/repos/" + owner + "/" + repoName;
+      const downloadUrl = "https://github.com/" + owner + "/" + repoName + "/releases/latest/download/SubhuMusic-Android.apk";
+      const numberFormat = new Intl.NumberFormat("en-IN");
+      const setText = function (id, value) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+      };
+      const formatBytes = function (bytes) {
+        if (!bytes) return "";
+        return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+      };
+      const shortNumber = function (value) {
+        if (value >= 1000000) return (value / 1000000).toFixed(1) + "M";
+        if (value >= 1000) return (value / 1000).toFixed(1) + "K";
+        return numberFormat.format(value || 0);
+      };
+
+      document.querySelectorAll("[data-download]").forEach(function (link) {
+        link.href = downloadUrl;
+      });
+      setText("year", new Date().getFullYear());
+
+      async function loadGitHubStats() {
+        const headers = { "Accept": "application/vnd.github+json" };
+        try {
+          const responses = await Promise.all([
+            fetch(apiBase, { headers: headers }),
+            fetch(apiBase + "/releases/latest", { headers: headers }),
+            fetch(apiBase + "/releases?per_page=100", { headers: headers })
+          ]);
+          if (responses[0].ok) {
+            const data = await responses[0].json();
+            setText("starsCount", shortNumber(data.stargazers_count));
+            setText("forksCount", shortNumber(data.forks_count));
+          }
+          if (responses[1].ok) {
+            const release = await responses[1].json();
+            const version = release.tag_name || "Latest";
+            setText("heroVersion", version.toUpperCase());
+            setText("releaseCount", version);
+            setText("ctaVersion", version);
+            const date = release.published_at ? new Date(release.published_at) : null;
+            if (date && !isNaN(date.getTime())) {
+              setText("releaseDate", "Published " + date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }));
+            } else {
+              setText("releaseDate", "Latest GitHub release");
+            }
+            const apk = (release.assets || []).find(function (asset) { return asset.name === "SubhuMusic-Android.apk"; });
+            if (apk && apk.size) setText("apkSize", formatBytes(apk.size));
+          }
+          if (responses[2].ok) {
+            const releases = await responses[2].json();
+            if (Array.isArray(releases)) {
+              const total = releases.reduce(function (sum, release) {
+                return sum + (release.assets || []).reduce(function (assetSum, asset) {
+                  return assetSum + (asset.name === "SubhuMusic-Android.apk" ? (asset.download_count || 0) : 0);
+                }, 0);
+              }, 0);
+              setText("downloadsCount", shortNumber(total));
+            }
+          }
+        } catch (error) {
+          setText("releaseDate", "Live GitHub stats unavailable");
+        }
+      }
+      loadGitHubStats();
+
+      const menuToggle = document.getElementById("menuToggle");
+      const navLinks = document.getElementById("navLinks");
+      menuToggle.addEventListener("click", function () {
+        const isOpen = navLinks.classList.toggle("open");
+        menuToggle.setAttribute("aria-expanded", String(isOpen));
+        menuToggle.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
+      });
+      navLinks.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function () {
+          navLinks.classList.remove("open");
+          menuToggle.setAttribute("aria-expanded", "false");
+        });
+      });
+
+      const revealObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      document.querySelectorAll(".reveal").forEach(function (element) { revealObserver.observe(element); });
+
+      const modal = document.getElementById("imageModal");
+      const modalImage = document.getElementById("modalImage");
+      const closeModal = function () {
+        modal.classList.remove("open");
+        modalImage.src = "";
+        document.body.style.overflow = "";
+      };
+      document.querySelectorAll(".shot img").forEach(function (image) {
+        image.addEventListener("click", function () {
+          modalImage.src = image.src;
+          modalImage.alt = image.alt;
+          modal.classList.add("open");
+          document.body.style.overflow = "hidden";
+        });
+      });
+      document.getElementById("modalClose").addEventListener("click", closeModal);
+      modal.addEventListener("click", function (event) { if (event.target === modal) closeModal(); });
+      document.addEventListener("keydown", function (event) { if (event.key === "Escape") closeModal(); });
+    })();
+  </script>
+</body>
+</html>
