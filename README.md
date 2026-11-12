@@ -15,8 +15,8 @@ A feature-rich Android music player built to bring streaming discovery, a person
 
 <br/>
 
-<a href="https://github.com/subhadip2217/SubhuMusic/releases/download/v1.8.19/SubhuMusic-Android.apk">
-  <img src="https://img.shields.io/badge/⬇%20DOWNLOAD%20APK-v1.8.19-6D28D9?style=for-the-badge&logo=android&logoColor=white" alt="Download SubhuMusic APK" />
+<a href="https://github.com/subhadip2217/SubhuMusic/releases/latest/download/SubhuMusic-Android.apk">
+  <img src="https://img.shields.io/github/v/release/subhadip2217/SubhuMusic?label=DOWNLOAD%20LATEST%20APK&style=for-the-badge&logo=android&logoColor=white&color=6D28D9" alt="Download the latest SubhuMusic APK" />
 </a>
 
 <br/>
