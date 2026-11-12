@@ -22,7 +22,7 @@ A feature-rich Android music player built to bring streaming discovery, a person
 <br/>
 <br/>
 
-**[Download latest version](https://github.com/subhadip2217/SubhuMusic/releases/latest) · [View all releases](https://github.com/subhadip2217/SubhuMusic/releases) · [Report a bug](https://github.com/subhadip2217/SubhuMusic/issues)**
+**[🌐 Official website](https://subhadip2217.github.io/SubhuMusic/) · [Download latest version](https://github.com/subhadip2217/SubhuMusic/releases/latest) · [View all releases](https://github.com/subhadip2217/SubhuMusic/releases) · [Report a bug](https://github.com/subhadip2217/SubhuMusic/issues)**
 
 </div>
 
