@@ -144,6 +144,7 @@ import com.dsann.music.model.PlayerGestureSettings
 import com.dsann.music.R
 import com.dsann.music.ui.player.SleepTimerBottomSheet
 import com.dsann.music.viewmodel.PlayerSharedViewModel
+import com.dsann.music.service.PlaybackAudioVisualizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -556,6 +557,42 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         val safe = value.takeIf { it in listOf("Accent", "White", "Cover", "Spectrum") } ?: "Accent"
         _visualizerColor.value = safe
         prefs.edit { putString("visualizer_color", safe) }
+    }
+
+    // The top capsule is an independent, real-audio visualizer. Keep its preference
+    // separate from the decorative visualizer choices inside the expanded player.
+    private val _topVisualizerEnabled = MutableStateFlow(
+        prefs.getBoolean("top_audio_visualizer_enabled", true)
+    )
+    val topVisualizerEnabled: StateFlow<Boolean> = _topVisualizerEnabled.asStateFlow()
+    fun setTopVisualizerEnabled(value: Boolean) {
+        _topVisualizerEnabled.value = value
+        prefs.edit { putBoolean("top_audio_visualizer_enabled", value) }
+        PlaybackAudioVisualizer.setEnabled(value)
+    }
+
+    private val _topVisualizerStyle = MutableStateFlow(
+        prefs.getString("top_audio_visualizer_style", "Bars") ?: "Bars"
+    )
+    val topVisualizerStyle: StateFlow<String> = _topVisualizerStyle.asStateFlow()
+    fun setTopVisualizerStyle(value: String) {
+        val safe = value.takeIf { it in listOf("Bars", "Wave", "Dots") } ?: "Bars"
+        _topVisualizerStyle.value = safe
+        prefs.edit { putString("top_audio_visualizer_style", safe) }
+    }
+
+    private val _topVisualizerColor = MutableStateFlow(
+        prefs.getString("top_audio_visualizer_color", "Spectrum") ?: "Spectrum"
+    )
+    val topVisualizerColor: StateFlow<String> = _topVisualizerColor.asStateFlow()
+    fun setTopVisualizerColor(value: String) {
+        val safe = value.takeIf { it in listOf("Spectrum", "Accent", "Amber", "Ocean", "Violet") } ?: "Spectrum"
+        _topVisualizerColor.value = safe
+        prefs.edit { putString("top_audio_visualizer_color", safe) }
+    }
+
+    init {
+        PlaybackAudioVisualizer.setEnabled(_topVisualizerEnabled.value)
     }
 
     private val _lyricsTextSize = MutableStateFlow(
@@ -1096,6 +1133,9 @@ fun SettingsScreenContent(
     val scrubberThickness by viewModel.scrubberThickness.collectAsStateWithLifecycle()
     val scrubberThumbStyle by viewModel.scrubberThumbStyle.collectAsStateWithLifecycle()
     val visualizerColor by viewModel.visualizerColor.collectAsStateWithLifecycle()
+    val topVisualizerEnabled by viewModel.topVisualizerEnabled.collectAsStateWithLifecycle()
+    val topVisualizerStyle by viewModel.topVisualizerStyle.collectAsStateWithLifecycle()
+    val topVisualizerColor by viewModel.topVisualizerColor.collectAsStateWithLifecycle()
     val lyricsTextSize by viewModel.lyricsTextSize.collectAsStateWithLifecycle()
     val lyricsAlignment by viewModel.lyricsAlignment.collectAsStateWithLifecycle()
     val lyricsFontFamily by viewModel.lyricsFontFamily.collectAsStateWithLifecycle()
@@ -1331,7 +1371,13 @@ fun SettingsScreenContent(
                 scrubberThumbStyle = scrubberThumbStyle,
                 onScrubberThumbStyleChange = { viewModel.setScrubberThumbStyle(it) },
                 visualizerColor = visualizerColor,
-                onVisualizerColorChange = { viewModel.setVisualizerColor(it) }
+                onVisualizerColorChange = { viewModel.setVisualizerColor(it) },
+                topVisualizerEnabled = topVisualizerEnabled,
+                onTopVisualizerEnabledChange = { viewModel.setTopVisualizerEnabled(it) },
+                topVisualizerStyle = topVisualizerStyle,
+                onTopVisualizerStyleChange = { viewModel.setTopVisualizerStyle(it) },
+                topVisualizerColor = topVisualizerColor,
+                onTopVisualizerColorChange = { viewModel.setTopVisualizerColor(it) }
             )
         }
         composable(SettingsRoute.Controls.route) {
@@ -2367,7 +2413,13 @@ private fun AppearanceScreen(
     scrubberThumbStyle: String,
     onScrubberThumbStyleChange: (String) -> Unit,
     visualizerColor: String,
-    onVisualizerColorChange: (String) -> Unit
+    onVisualizerColorChange: (String) -> Unit,
+    topVisualizerEnabled: Boolean,
+    onTopVisualizerEnabledChange: (Boolean) -> Unit,
+    topVisualizerStyle: String,
+    onTopVisualizerStyleChange: (String) -> Unit,
+    topVisualizerColor: String,
+    onTopVisualizerColorChange: (String) -> Unit
 ) {
     Scaffold(
         topBar = { SettingsDetailTopBar("Customize") { navController.popBackStack() } }
@@ -2548,6 +2600,47 @@ private fun AppearanceScreen(
                     onSelected = onVisualizerColorChange
                 )
             })
+
+            SettingsHeader("Top audio capsule")
+            SettingsGroupCard(listOf(
+                {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Show top audio visualizer", fontWeight = FontWeight.SemiBold)
+                            Text(
+                                "Display the floating capsule while a track is loaded. It reacts to the actual playback audio.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = topVisualizerEnabled,
+                            onCheckedChange = onTopVisualizerEnabledChange
+                        )
+                    }
+                },
+                {
+                    SettingsChoiceRow(
+                        title = "Capsule pattern",
+                        description = "Choose equalizer bars, a waveform or stacked dots.",
+                        selected = topVisualizerStyle,
+                        options = listOf("Bars", "Wave", "Dots"),
+                        onSelected = onTopVisualizerStyleChange
+                    )
+                },
+                {
+                    SettingsChoiceRow(
+                        title = "Capsule colours",
+                        description = "Use a moving spectrum, your theme accent, amber, ocean or violet.",
+                        selected = topVisualizerColor,
+                        options = listOf("Spectrum", "Accent", "Amber", "Ocean", "Violet"),
+                        onSelected = onTopVisualizerColorChange
+                    )
+                }
+            ))
 
             SettingsHeader("Player appearance")
             SettingsGroupCard(listOf(
