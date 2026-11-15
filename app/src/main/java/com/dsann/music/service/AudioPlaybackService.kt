@@ -546,6 +546,7 @@ class AudioPlaybackService : MediaSessionService() {
     private val mainPlayerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             viewModel?.postIsPlaying(isPlaying)
+            PlaybackAudioVisualizer.setPlaying(isPlaying)
             telemetryManager.onPlaybackStateChanged(isPlaying)
             if (isPlaying) {
                 handler.removeCallbacks(progressUpdateRunnable)
@@ -926,6 +927,7 @@ class AudioPlaybackService : MediaSessionService() {
         }
         abandonAudioFocus()
         cancelCurrentTrackCache()
+        PlaybackAudioVisualizer.setPlaying(false)
 
         if (isPlayerInitialized) {
             viewModel?.cleanupBgScope()
@@ -971,9 +973,33 @@ class AudioPlaybackService : MediaSessionService() {
             .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
     }
 
-    private fun buildExoPlayer(): ExoPlayer {
-        val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(this)
-            .setEnableDecoderFallback(true)
+    @OptIn(UnstableApi::class)
+    private fun buildExoPlayer(captureVisualizer: Boolean = true): ExoPlayer {
+        // Keep the stock Media3 sink and decoder path. The optional analyser only observes
+        // decoded PCM and copies every byte unchanged to the output buffer.
+        val renderersFactory = (
+            if (captureVisualizer) {
+                object : androidx.media3.exoplayer.DefaultRenderersFactory(this) {
+                    override fun buildAudioSink(
+                        context: Context,
+                        enableFloatOutput: Boolean,
+                        enableAudioOutputPlaybackParams: Boolean
+                    ): androidx.media3.exoplayer.audio.AudioSink {
+                        return androidx.media3.exoplayer.audio.DefaultAudioSink.Builder(context)
+                            .setEnableFloatOutput(enableFloatOutput)
+                            .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
+                            .setAudioProcessors(
+                                arrayOf<androidx.media3.common.audio.AudioProcessor>(
+                                    PlaybackAudioProcessor()
+                                )
+                            )
+                            .build()
+                    }
+                }
+            } else {
+                androidx.media3.exoplayer.DefaultRenderersFactory(this)
+            }
+        ).setEnableDecoderFallback(true)
 
         val cacheDataSourceFactory = createCacheDataSourceFactory(this)
         val mediaSourceFactory = androidx.media3.exoplayer.source.DefaultMediaSourceFactory(this)
@@ -1354,7 +1380,7 @@ class AudioPlaybackService : MediaSessionService() {
             withContext(Dispatchers.Main) {
                 if (crossfadeDurationMs > 0) {
                     if (nextPlayer == null) {
-                        nextPlayer = buildExoPlayer()
+                        nextPlayer = buildExoPlayer(captureVisualizer = false)
                     configurePlayerAudio(nextPlayer!!)
                     }
                     val nextItem = buildMediaItem(nextUri, nextSong.title, nextSong.artist, nextSong.id.toString())
