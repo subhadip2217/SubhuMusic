@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -63,12 +64,18 @@ fun TopAudioVisualizerPill(
     sizeScale: Float = 1f,
     animateColors: Boolean = true,
     animationSpeed: Float = 1f,
+    backgroundTint: Color? = null,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
     val accent = MaterialTheme.colorScheme.primary
     val safeScale = sizeScale.coerceIn(0.75f, 1.35f)
     val safeSpeed = animationSpeed.coerceIn(0.5f, 2f)
+    val capsuleBackground by animateColorAsState(
+        targetValue = backgroundTint?.copy(alpha = 0.94f) ?: Color(0xF20B0E18),
+        animationSpec = tween(durationMillis = 700),
+        label = "TopVisualizerArtworkBackground"
+    )
     val colorTransition = rememberInfiniteTransition(label = "TopVisualizerColors")
     val colorPhase by colorTransition.animateFloat(
         initialValue = 0f,
@@ -88,7 +95,11 @@ fun TopAudioVisualizerPill(
             .clip(CircleShape)
             .background(
                 Brush.horizontalGradient(
-                    listOf(Color(0xF20B0E18), Color(0xF9161622), Color(0xF20B0E18))
+                    listOf(
+                        capsuleBackground.copy(alpha = 0.92f),
+                        capsuleBackground.copy(alpha = 0.78f),
+                        capsuleBackground.copy(alpha = 0.92f)
+                    )
                 )
             )
             .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)

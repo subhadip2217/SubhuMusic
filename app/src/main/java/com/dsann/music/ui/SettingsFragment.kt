@@ -621,6 +621,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         prefs.edit { putFloat("top_audio_visualizer_animation_speed", safe) }
     }
 
+    private val _topVisualizerArtworkBackground = MutableStateFlow(
+        prefs.getBoolean("top_audio_visualizer_artwork_background", true)
+    )
+    val topVisualizerArtworkBackground: StateFlow<Boolean> = _topVisualizerArtworkBackground.asStateFlow()
+    fun setTopVisualizerArtworkBackground(value: Boolean) {
+        _topVisualizerArtworkBackground.value = value
+        prefs.edit { putBoolean("top_audio_visualizer_artwork_background", value) }
+    }
+
     init {
         PlaybackAudioVisualizer.setEnabled(_topVisualizerEnabled.value)
     }
@@ -1170,6 +1179,7 @@ fun SettingsScreenContent(
     val topVisualizerSize by viewModel.topVisualizerSize.collectAsStateWithLifecycle()
     val topVisualizerAnimateColors by viewModel.topVisualizerAnimateColors.collectAsStateWithLifecycle()
     val topVisualizerAnimationSpeed by viewModel.topVisualizerAnimationSpeed.collectAsStateWithLifecycle()
+    val topVisualizerArtworkBackground by viewModel.topVisualizerArtworkBackground.collectAsStateWithLifecycle()
     val lyricsTextSize by viewModel.lyricsTextSize.collectAsStateWithLifecycle()
     val lyricsAlignment by viewModel.lyricsAlignment.collectAsStateWithLifecycle()
     val lyricsFontFamily by viewModel.lyricsFontFamily.collectAsStateWithLifecycle()
@@ -1419,7 +1429,9 @@ fun SettingsScreenContent(
                 topVisualizerAnimateColors = topVisualizerAnimateColors,
                 onTopVisualizerAnimateColorsChange = { viewModel.setTopVisualizerAnimateColors(it) },
                 topVisualizerAnimationSpeed = topVisualizerAnimationSpeed,
-                onTopVisualizerAnimationSpeedChange = { viewModel.setTopVisualizerAnimationSpeed(it) }
+                onTopVisualizerAnimationSpeedChange = { viewModel.setTopVisualizerAnimationSpeed(it) },
+                topVisualizerArtworkBackground = topVisualizerArtworkBackground,
+                onTopVisualizerArtworkBackgroundChange = { viewModel.setTopVisualizerArtworkBackground(it) }
             )
         }
         composable(SettingsRoute.Controls.route) {
@@ -2469,7 +2481,9 @@ private fun AppearanceScreen(
     topVisualizerAnimateColors: Boolean,
     onTopVisualizerAnimateColorsChange: (Boolean) -> Unit,
     topVisualizerAnimationSpeed: Float,
-    onTopVisualizerAnimationSpeedChange: (Float) -> Unit
+    onTopVisualizerAnimationSpeedChange: (Float) -> Unit,
+    topVisualizerArtworkBackground: Boolean,
+    onTopVisualizerArtworkBackgroundChange: (Boolean) -> Unit
 ) {
     Scaffold(
         topBar = { SettingsDetailTopBar("Customize") { navController.popBackStack() } }
@@ -2697,6 +2711,15 @@ private fun AppearanceScreen(
                             Text("Automatically hide the capsule while the search editor, loading state or results are visible.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Switch(checked = topVisualizerHideOnSearch, onCheckedChange = onTopVisualizerHideOnSearchChange)
+                    }
+                },
+                {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Background follows artwork", fontWeight = FontWeight.SemiBold)
+                            Text("Smoothly tint the capsule background from the current track cover. Turn off to keep the original dark background.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Switch(checked = topVisualizerArtworkBackground, onCheckedChange = onTopVisualizerArtworkBackgroundChange)
                     }
                 },
                 {

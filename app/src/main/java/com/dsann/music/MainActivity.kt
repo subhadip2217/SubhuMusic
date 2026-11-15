@@ -100,6 +100,7 @@ import com.dsann.music.ui.PlayerBottomSheetCompose
 import com.dsann.music.ui.SettingsScreenContent
 import com.dsann.music.ui.SettingsViewModel
 import com.dsann.music.ui.player.TopAudioVisualizerPill
+import androidx.compose.ui.graphics.Color
 import com.dsann.music.ui.TagEditorScreenEntryPoint
 import com.dsann.music.ui.explore.ExploreScreen
 import com.dsann.music.ui.explore.GoogleSignInScreen
@@ -217,6 +218,7 @@ class MainActivity : AppCompatActivity() {
             val topVisualizerSize by topVisualizerSettings.topVisualizerSize.collectAsStateWithLifecycle()
             val topVisualizerAnimateColors by topVisualizerSettings.topVisualizerAnimateColors.collectAsStateWithLifecycle()
             val topVisualizerAnimationSpeed by topVisualizerSettings.topVisualizerAnimationSpeed.collectAsStateWithLifecycle()
+            val topVisualizerArtworkBackground by topVisualizerSettings.topVisualizerArtworkBackground.collectAsStateWithLifecycle()
 
             SpatialFlowTheme(darkTheme = isDarkTheme, dynamicAlbumColor = dynamicAlbumColor) {
                 val navLabelsMode by prefs.observeKey(
@@ -695,7 +697,8 @@ class MainActivity : AppCompatActivity() {
                                     colorPreset = topVisualizerColor,
                                     sizeScale = topVisualizerSize,
                                     animateColors = topVisualizerAnimateColors,
-                                    animationSpeed = topVisualizerAnimationSpeed
+                                    animationSpeed = topVisualizerAnimationSpeed,
+                                    backgroundTint = if (topVisualizerArtworkBackground) Color(playerBackgroundColor) else null
                                 )
                             }
                         }
