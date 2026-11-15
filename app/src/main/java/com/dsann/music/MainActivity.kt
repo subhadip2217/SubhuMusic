@@ -44,6 +44,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -92,9 +93,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.dsann.music.model.SongItem
 import com.dsann.music.service.AudioPlaybackService
+import com.dsann.music.service.PlaybackAudioVisualizer
 import com.dsann.music.ui.AudioFormatChoiceDialogHost
 import com.dsann.music.ui.PlayerBottomSheetCompose
 import com.dsann.music.ui.SettingsScreenContent
+import com.dsann.music.ui.SettingsViewModel
+import com.dsann.music.ui.player.TopAudioVisualizerPill
 import com.dsann.music.ui.TagEditorScreenEntryPoint
 import com.dsann.music.ui.explore.ExploreScreen
 import com.dsann.music.ui.explore.GoogleSignInScreen
@@ -201,6 +205,13 @@ class MainActivity : AppCompatActivity() {
             val currentSong by playerViewModel.currentSong.collectAsStateWithLifecycle()
             val playerBackgroundColor by playerViewModel.playerBackgroundColor.collectAsStateWithLifecycle()
             val dynamicAlbumColor = if (currentSong != null) playerBackgroundColor else null
+            val isPlaying by playerViewModel.isPlaying.collectAsStateWithLifecycle()
+            val visualizerLevels by PlaybackAudioVisualizer.levels.collectAsStateWithLifecycle()
+            val topVisualizerSettings: SettingsViewModel =
+                androidx.lifecycle.viewmodel.compose.viewModel(viewModelStoreOwner = this@MainActivity)
+            val topVisualizerEnabled by topVisualizerSettings.topVisualizerEnabled.collectAsStateWithLifecycle()
+            val topVisualizerStyle by topVisualizerSettings.topVisualizerStyle.collectAsStateWithLifecycle()
+            val topVisualizerColor by topVisualizerSettings.topVisualizerColor.collectAsStateWithLifecycle()
 
             SpatialFlowTheme(darkTheme = isDarkTheme, dynamicAlbumColor = dynamicAlbumColor) {
                 val navLabelsMode by prefs.observeKey(
@@ -651,6 +662,23 @@ class MainActivity : AppCompatActivity() {
                             }.fillMaxSize()
                         )
                         AudioFormatChoiceDialogHost()
+
+                        if (topVisualizerEnabled && currentSong != null) {
+                            TopAudioVisualizerPill(
+                                title = currentSong.title,
+                                artist = currentSong.artist,
+                                artworkUri = currentSong.getAlbumArtUri(),
+                                levels = visualizerLevels,
+                                isPlaying = isPlaying,
+                                style = topVisualizerStyle,
+                                colorPreset = topVisualizerColor,
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .statusBarsPadding()
+                                    .padding(top = 8.dp)
+                                    .zIndex(30f)
+                            )
+                        }
                     }
                 }
             }
