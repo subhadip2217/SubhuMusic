@@ -1,6 +1,6 @@
 name: Publish SubhuMusic Android Release
 
-run-name: Publish SubhuMusic ${{ inputs.release_tag || 'v1.8.22' }}
+run-name: Publish SubhuMusic ${{ inputs.release_tag || 'v1.8.23' }}
 
 on:
   # Publish the visualizer test build when this release workflow is updated on master.
@@ -13,7 +13,7 @@ on:
       release_tag:
         description: "New Android release version (for example: v1.8.21)"
         required: true
-        default: v1.8.22
+        default: v1.8.23
         type: string
       source_ref:
         description: "Android source branch, tag, or commit to build"
@@ -30,7 +30,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: subhumusic-android-release-${{ inputs.release_tag || 'v1.8.22' }}
+  group: subhumusic-android-release-${{ inputs.release_tag || 'v1.8.23' }}
   cancel-in-progress: false
 
 jobs:
@@ -49,7 +49,7 @@ jobs:
         id: release-version
         shell: bash
         env:
-          RELEASE_TAG: ${{ inputs.release_tag || 'v1.8.22' }}
+          RELEASE_TAG: ${{ inputs.release_tag || 'v1.8.23' }}
         run: |
           set -euo pipefail
           VERSION="${RELEASE_TAG#v}"
@@ -150,9 +150,9 @@ jobs:
       - name: Publish GitHub Release with APK
         uses: softprops/action-gh-release@v3.0.3
         with:
-          tag_name: ${{ inputs.release_tag || 'v1.8.22' }}
+          tag_name: ${{ inputs.release_tag || 'v1.8.23' }}
           target_commitish: ${{ inputs.source_ref || github.sha }}
-          name: SubhuMusic ${{ inputs.release_tag || 'v1.8.22' }}
+          name: SubhuMusic ${{ inputs.release_tag || 'v1.8.23' }}
           prerelease: ${{ inputs.prerelease || false }}
           make_latest: true
           generate_release_notes: true

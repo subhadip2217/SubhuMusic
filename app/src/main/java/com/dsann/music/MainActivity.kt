@@ -26,6 +26,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -212,6 +213,10 @@ class MainActivity : AppCompatActivity() {
             val topVisualizerEnabled by topVisualizerSettings.topVisualizerEnabled.collectAsStateWithLifecycle()
             val topVisualizerStyle by topVisualizerSettings.topVisualizerStyle.collectAsStateWithLifecycle()
             val topVisualizerColor by topVisualizerSettings.topVisualizerColor.collectAsStateWithLifecycle()
+            val topVisualizerHideOnSearch by topVisualizerSettings.topVisualizerHideOnSearch.collectAsStateWithLifecycle()
+            val topVisualizerSize by topVisualizerSettings.topVisualizerSize.collectAsStateWithLifecycle()
+            val topVisualizerAnimateColors by topVisualizerSettings.topVisualizerAnimateColors.collectAsStateWithLifecycle()
+            val topVisualizerAnimationSpeed by topVisualizerSettings.topVisualizerAnimationSpeed.collectAsStateWithLifecycle()
 
             SpatialFlowTheme(darkTheme = isDarkTheme, dynamicAlbumColor = dynamicAlbumColor) {
                 val navLabelsMode by prefs.observeKey(
@@ -223,6 +228,7 @@ class MainActivity : AppCompatActivity() {
 
                 val currentNavController = rememberNavController()
                 val rootTabRoutes = remember { setOf("explore", "library", "local_music", "settings") }
+                var topVisualizerSearchActive by remember { mutableStateOf(false) }
                 val rootTabStateHolder = rememberSaveableStateHolder()
                 var lastRootTab by remember { mutableStateOf("explore") }
                 LaunchedEffect(currentNavController) {
@@ -335,6 +341,9 @@ class MainActivity : AppCompatActivity() {
                         currentRoute == "tag_editor" || currentRoute == "google_signin" -> lastRootTab
                         else -> null
                     }
+                    LaunchedEffect(activeCachedRootTab) {
+                        if (activeCachedRootTab != "explore") topVisualizerSearchActive = false
+                    }
                     LaunchedEffect(currentDestination?.route) {
                         exploreViewModel.setExplorePageActive(currentDestination?.route == "explore")
                     }
@@ -409,7 +418,8 @@ class MainActivity : AppCompatActivity() {
                                                     launchSingleTop = true
                                                     restoreState = true
                                                 }
-                                            }
+                                            },
+                                            onSearchVisibilityChanged = { topVisualizerSearchActive = it }
                                         )
                                         "library" -> LibraryScreen(
                                             viewModel = playerViewModel,
@@ -663,7 +673,17 @@ class MainActivity : AppCompatActivity() {
                         )
                         AudioFormatChoiceDialogHost()
 
-                        if (topVisualizerEnabled) {
+                        AnimatedVisibility(
+                            visible = topVisualizerEnabled && currentSong != null &&
+                                (!topVisualizerHideOnSearch || !topVisualizerSearchActive),
+                            enter = fadeIn(),
+                            exit = fadeOut(),
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .statusBarsPadding()
+                                .padding(top = 8.dp)
+                                .zIndex(30f)
+                        ) {
                             currentSong?.let { song ->
                                 TopAudioVisualizerPill(
                                     title = song.title,
@@ -673,11 +693,9 @@ class MainActivity : AppCompatActivity() {
                                     isPlaying = isPlaying,
                                     style = topVisualizerStyle,
                                     colorPreset = topVisualizerColor,
-                                    modifier = Modifier
-                                        .align(Alignment.TopCenter)
-                                        .statusBarsPadding()
-                                        .padding(top = 8.dp)
-                                        .zIndex(30f)
+                                    sizeScale = topVisualizerSize,
+                                    animateColors = topVisualizerAnimateColors,
+                                    animationSpeed = topVisualizerAnimationSpeed
                                 )
                             }
                         }

@@ -21,6 +21,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,16 +60,31 @@ fun TopAudioVisualizerPill(
     isPlaying: Boolean,
     style: String,
     colorPreset: String,
+    sizeScale: Float = 1f,
+    animateColors: Boolean = true,
+    animationSpeed: Float = 1f,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
     val accent = MaterialTheme.colorScheme.primary
+    val safeScale = sizeScale.coerceIn(0.75f, 1.35f)
+    val safeSpeed = animationSpeed.coerceIn(0.5f, 2f)
+    val colorTransition = rememberInfiniteTransition(label = "TopVisualizerColors")
+    val colorPhase by colorTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = if (animateColors) 360f else 0f,
+        animationSpec = infiniteRepeatable(animation = tween(
+            durationMillis = (7000f / safeSpeed).toInt().coerceIn(1200, 16000),
+            easing = LinearEasing
+        )),
+        label = "TopVisualizerHueCycle"
+    )
 
     Box(
         modifier = modifier
-            .widthIn(min = 184.dp, max = 232.dp)
-            .height(48.dp)
-            .shadow(18.dp, CircleShape)
+            .widthIn(min = 184.dp * safeScale, max = 232.dp * safeScale)
+            .height(48.dp * safeScale)
+            .shadow(18.dp * safeScale, CircleShape)
             .clip(CircleShape)
             .background(
                 Brush.horizontalGradient(
@@ -73,7 +93,7 @@ fun TopAudioVisualizerPill(
             )
             .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
             .clickable { expanded = true }
-            .padding(horizontal = 11.dp),
+            .padding(horizontal = 11.dp * safeScale),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -82,7 +102,7 @@ fun TopAudioVisualizerPill(
         ) {
             Box(
                 modifier = Modifier
-                    .size(30.dp)
+                    .size(30.dp * safeScale)
                     .clip(CircleShape)
                     .background(Brush.linearGradient(listOf(accent, Color(0xFF182A3C)))),
                 contentAlignment = Alignment.Center
@@ -91,21 +111,23 @@ fun TopAudioVisualizerPill(
                     AsyncImage(
                         model = artworkUri,
                         contentDescription = null,
-                        modifier = Modifier.fillMaxWidth().height(30.dp).clip(CircleShape)
+                        modifier = Modifier.size(30.dp * safeScale).clip(CircleShape)
                     )
                 } else {
-                    Text("♪", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("♪", color = Color.White, fontSize = 18.sp * safeScale, fontWeight = FontWeight.Bold)
                 }
             }
 
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(12.dp * safeScale))
             AudioSpectrumCanvas(
                 levels = levels,
                 isPlaying = isPlaying,
                 style = style,
                 colorPreset = colorPreset,
                 accent = accent,
-                modifier = Modifier.weight(1f).height(29.dp)
+                colorPhase = colorPhase,
+                animateColors = animateColors,
+                modifier = Modifier.weight(1f).height(29.dp * safeScale)
             )
         }
     }
@@ -150,8 +172,8 @@ fun TopAudioVisualizerPill(
                     Spacer(Modifier.height(18.dp))
                     Box(
                         modifier = Modifier
-                            .size(58.dp)
-                            .clip(RoundedCornerShape(18.dp))
+                            .size(58.dp * safeScale)
+                            .clip(RoundedCornerShape(18.dp * safeScale))
                             .background(Brush.linearGradient(listOf(accent, Color(0xFF202B47)))),
                         contentAlignment = Alignment.Center
                     ) {
@@ -159,10 +181,10 @@ fun TopAudioVisualizerPill(
                             AsyncImage(
                                 model = artworkUri,
                                 contentDescription = null,
-                                modifier = Modifier.fillMaxWidth().height(58.dp).clip(RoundedCornerShape(18.dp))
+                                modifier = Modifier.size(58.dp * safeScale).clip(RoundedCornerShape(18.dp * safeScale))
                             )
                         } else {
-                            Text("♪", color = Color.White, fontSize = 26.sp)
+                            Text("♪", color = Color.White, fontSize = 26.sp * safeScale)
                         }
                     }
 
@@ -190,7 +212,9 @@ fun TopAudioVisualizerPill(
                         style = style,
                         colorPreset = colorPreset,
                         accent = accent,
-                        modifier = Modifier.fillMaxWidth().height(138.dp)
+                        colorPhase = colorPhase,
+                        animateColors = animateColors,
+                        modifier = Modifier.fillMaxWidth().height(138.dp * safeScale)
                     )
                     Spacer(Modifier.height(14.dp))
                     Text(
@@ -213,6 +237,8 @@ private fun AudioSpectrumCanvas(
     style: String,
     colorPreset: String,
     accent: Color,
+    colorPhase: Float,
+    animateColors: Boolean,
     modifier: Modifier = Modifier
 ) {
     Canvas(modifier = modifier) {
@@ -221,13 +247,18 @@ private fun AudioSpectrumCanvas(
 
         fun barColor(index: Int): Color {
             val fraction = if (count <= 1) 0f else index / (count - 1f)
-            return when (colorPreset) {
-                "Accent" -> accent
-                "Amber" -> Color.hsv(34f + fraction * 9f, 0.92f, 1f)
-                "Ocean" -> Color.hsv(184f + fraction * 48f, 0.88f, 1f)
-                "Violet" -> Color.hsv(248f + fraction * 54f, 0.82f, 1f)
-                else -> Color.hsv((185f + fraction * 155f) % 360f, 0.88f, 1f)
+            if (colorPreset == "Accent" && !animateColors) return accent
+            val baseHue = when (colorPreset) {
+                "Amber" -> 34f
+                "Ocean" -> 184f
+                "Violet" -> 248f
+                "Accent" -> 218f
+                else -> 185f
             }
+            val hueSpan = if (colorPreset == "Spectrum") 155f else 24f
+            val phase = if (animateColors) colorPhase else 0f
+            val saturation = if (colorPreset == "Spectrum") 0.88f else 0.86f
+            return Color.hsv((baseHue + fraction * hueSpan + phase) % 360f, saturation, 1f)
         }
 
         if (style == "Wave") {

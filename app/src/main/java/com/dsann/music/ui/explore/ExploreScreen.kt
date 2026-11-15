@@ -157,7 +157,8 @@ fun Modifier.sharedElementIfAvailable(key: String): Modifier {
 fun ExploreScreen(
     viewModel: ExploreViewModel,
     playerSharedViewModel: PlayerSharedViewModel,
-    onNavigateToLibrary: () -> Unit = {}
+    onNavigateToLibrary: () -> Unit = {},
+    onSearchVisibilityChanged: (Boolean) -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -410,6 +411,13 @@ fun ExploreScreen(
                 else -> "home"
             }
         }
+
+    // Treat the editor, active request, and visible results as one search session.
+    val isSearchSurfaceVisible = currentScreen == "home" &&
+        (isSearchActive || searchQuery.isNotBlank() || searchResults.isNotEmpty() || isSearching)
+    LaunchedEffect(isSearchSurfaceVisible) {
+        onSearchVisibilityChanged(isSearchSurfaceVisible)
+    }
 
     val currentFilter by viewModel.searchFilter.collectAsStateWithLifecycle()
 

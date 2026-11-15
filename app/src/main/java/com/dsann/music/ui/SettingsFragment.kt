@@ -591,6 +591,36 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         prefs.edit { putString("top_audio_visualizer_color", safe) }
     }
 
+    private val _topVisualizerHideOnSearch = MutableStateFlow(prefs.getBoolean("top_audio_visualizer_hide_on_search", true))
+    val topVisualizerHideOnSearch: StateFlow<Boolean> = _topVisualizerHideOnSearch.asStateFlow()
+    fun setTopVisualizerHideOnSearch(value: Boolean) {
+        _topVisualizerHideOnSearch.value = value
+        prefs.edit { putBoolean("top_audio_visualizer_hide_on_search", value) }
+    }
+
+    private val _topVisualizerSize = MutableStateFlow(prefs.getFloat("top_audio_visualizer_size", 1f).coerceIn(0.75f, 1.35f))
+    val topVisualizerSize: StateFlow<Float> = _topVisualizerSize.asStateFlow()
+    fun setTopVisualizerSize(value: Float) {
+        val safe = value.coerceIn(0.75f, 1.35f)
+        _topVisualizerSize.value = safe
+        prefs.edit { putFloat("top_audio_visualizer_size", safe) }
+    }
+
+    private val _topVisualizerAnimateColors = MutableStateFlow(prefs.getBoolean("top_audio_visualizer_animate_colors", true))
+    val topVisualizerAnimateColors: StateFlow<Boolean> = _topVisualizerAnimateColors.asStateFlow()
+    fun setTopVisualizerAnimateColors(value: Boolean) {
+        _topVisualizerAnimateColors.value = value
+        prefs.edit { putBoolean("top_audio_visualizer_animate_colors", value) }
+    }
+
+    private val _topVisualizerAnimationSpeed = MutableStateFlow(prefs.getFloat("top_audio_visualizer_animation_speed", 1f).coerceIn(0.5f, 2f))
+    val topVisualizerAnimationSpeed: StateFlow<Float> = _topVisualizerAnimationSpeed.asStateFlow()
+    fun setTopVisualizerAnimationSpeed(value: Float) {
+        val safe = value.coerceIn(0.5f, 2f)
+        _topVisualizerAnimationSpeed.value = safe
+        prefs.edit { putFloat("top_audio_visualizer_animation_speed", safe) }
+    }
+
     init {
         PlaybackAudioVisualizer.setEnabled(_topVisualizerEnabled.value)
     }
@@ -1136,6 +1166,10 @@ fun SettingsScreenContent(
     val topVisualizerEnabled by viewModel.topVisualizerEnabled.collectAsStateWithLifecycle()
     val topVisualizerStyle by viewModel.topVisualizerStyle.collectAsStateWithLifecycle()
     val topVisualizerColor by viewModel.topVisualizerColor.collectAsStateWithLifecycle()
+    val topVisualizerHideOnSearch by viewModel.topVisualizerHideOnSearch.collectAsStateWithLifecycle()
+    val topVisualizerSize by viewModel.topVisualizerSize.collectAsStateWithLifecycle()
+    val topVisualizerAnimateColors by viewModel.topVisualizerAnimateColors.collectAsStateWithLifecycle()
+    val topVisualizerAnimationSpeed by viewModel.topVisualizerAnimationSpeed.collectAsStateWithLifecycle()
     val lyricsTextSize by viewModel.lyricsTextSize.collectAsStateWithLifecycle()
     val lyricsAlignment by viewModel.lyricsAlignment.collectAsStateWithLifecycle()
     val lyricsFontFamily by viewModel.lyricsFontFamily.collectAsStateWithLifecycle()
@@ -1377,7 +1411,15 @@ fun SettingsScreenContent(
                 topVisualizerStyle = topVisualizerStyle,
                 onTopVisualizerStyleChange = { viewModel.setTopVisualizerStyle(it) },
                 topVisualizerColor = topVisualizerColor,
-                onTopVisualizerColorChange = { viewModel.setTopVisualizerColor(it) }
+                onTopVisualizerColorChange = { viewModel.setTopVisualizerColor(it) },
+                topVisualizerHideOnSearch = topVisualizerHideOnSearch,
+                onTopVisualizerHideOnSearchChange = { viewModel.setTopVisualizerHideOnSearch(it) },
+                topVisualizerSize = topVisualizerSize,
+                onTopVisualizerSizeChange = { viewModel.setTopVisualizerSize(it) },
+                topVisualizerAnimateColors = topVisualizerAnimateColors,
+                onTopVisualizerAnimateColorsChange = { viewModel.setTopVisualizerAnimateColors(it) },
+                topVisualizerAnimationSpeed = topVisualizerAnimationSpeed,
+                onTopVisualizerAnimationSpeedChange = { viewModel.setTopVisualizerAnimationSpeed(it) }
             )
         }
         composable(SettingsRoute.Controls.route) {
@@ -2419,7 +2461,15 @@ private fun AppearanceScreen(
     topVisualizerStyle: String,
     onTopVisualizerStyleChange: (String) -> Unit,
     topVisualizerColor: String,
-    onTopVisualizerColorChange: (String) -> Unit
+    onTopVisualizerColorChange: (String) -> Unit,
+    topVisualizerHideOnSearch: Boolean,
+    onTopVisualizerHideOnSearchChange: (Boolean) -> Unit,
+    topVisualizerSize: Float,
+    onTopVisualizerSizeChange: (Float) -> Unit,
+    topVisualizerAnimateColors: Boolean,
+    onTopVisualizerAnimateColorsChange: (Boolean) -> Unit,
+    topVisualizerAnimationSpeed: Float,
+    onTopVisualizerAnimationSpeedChange: (Float) -> Unit
 ) {
     Scaffold(
         topBar = { SettingsDetailTopBar("Customize") { navController.popBackStack() } }
@@ -2634,11 +2684,41 @@ private fun AppearanceScreen(
                 {
                     SettingsChoiceRow(
                         title = "Capsule colours",
-                        description = "Use a moving spectrum, your theme accent, amber, ocean or violet.",
+                        description = "Choose the base palette for the capsule.",
                         selected = topVisualizerColor,
                         options = listOf("Spectrum", "Accent", "Amber", "Ocean", "Violet"),
                         onSelected = onTopVisualizerColorChange
                     )
+                },
+                {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Hide while searching", fontWeight = FontWeight.SemiBold)
+                            Text("Automatically hide the capsule while the search editor, loading state or results are visible.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Switch(checked = topVisualizerHideOnSearch, onCheckedChange = onTopVisualizerHideOnSearchChange)
+                    }
+                },
+                {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Animate colours", fontWeight = FontWeight.SemiBold)
+                            Text("Continuously cycle the capsule gradient while music is playing.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Switch(checked = topVisualizerAnimateColors, onCheckedChange = onTopVisualizerAnimateColorsChange)
+                    }
+                },
+                {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+                        Text("Capsule size: " + (topVisualizerSize * 100f).toInt() + "%")
+                        Slider(value = topVisualizerSize, onValueChange = onTopVisualizerSizeChange, valueRange = 0.75f..1.35f, steps = 11)
+                    }
+                },
+                {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+                        Text("Colour cycle speed: " + (topVisualizerAnimationSpeed * 100f).toInt() + "%")
+                        Slider(value = topVisualizerAnimationSpeed, onValueChange = onTopVisualizerAnimationSpeedChange, valueRange = 0.5f..2f, steps = 14, enabled = topVisualizerAnimateColors)
+                    }
                 }
             ))
 
