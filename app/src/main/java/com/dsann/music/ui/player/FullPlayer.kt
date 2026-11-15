@@ -10,11 +10,13 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
@@ -88,6 +90,7 @@ import com.dsann.music.R
 import com.dsann.music.data.lyrics.LyricLine
 import com.dsann.music.data.lyrics.LyricsResult
 import com.dsann.music.model.SongItem
+import com.dsann.music.service.PlaybackAudioVisualizer
 import com.dsann.music.viewmodel.PlayerSharedViewModel
 import com.dsann.music.data.innertube.YouTubeMusic
 import kotlinx.coroutines.Dispatchers
@@ -101,55 +104,79 @@ private fun PlayerVisualizer(
     isPlaying: Boolean,
     color: Color,
     colorMode: String = "Accent",
-    isVisible: Boolean
+    isVisible: Boolean,
+    onPreviousClick: () -> Unit,
+    onNextClick: () -> Unit
 ) {
-    val phase = remember { Animatable(0f) }
-    LaunchedEffect(style, isPlaying, isVisible) {
-        if (!isVisible || !isPlaying || style == "Off") {
-            phase.snapTo(0f)
-        } else {
-            while (true) {
-                phase.animateTo(1f, animationSpec = tween(900, easing = LinearEasing))
-                phase.snapTo(0f)
-            }
-        }
-    }
+    // The same decoded-PCM FFT stream powers the top capsule. No microphone access
+    // and no synthetic animation: every visual element follows the playing track.
+    val levels by PlaybackAudioVisualizer.levels.collectAsStateWithLifecycle()
+    val density = androidx.compose.ui.platform.LocalDensity.current
 
     androidx.compose.foundation.Canvas(
-        modifier = Modifier.fillMaxWidth().height(
-            when (style) {
-                "Ring" -> 36.dp
-                "Bars" -> 24.dp
-                else -> 30.dp
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(
+                when (style) {
+                    "Ring" -> 36.dp
+                    "Bars" -> 24.dp
+                    else -> 30.dp
+                }
+            )
+            .pointerInput(isVisible, style) {
+                var horizontalDistance = 0f
+                detectHorizontalDragGestures(
+                    onHorizontalDrag = { change, dragAmount ->
+                        change.consume()
+                        horizontalDistance += dragAmount
+                    },
+                    onDragEnd = {
+                        val threshold = with(density) { 48.dp.toPx() }
+                        if (isVisible && style != "Off" && kotlin.math.abs(horizontalDistance) >= threshold) {
+                            if (horizontalDistance < 0f) onNextClick() else onPreviousClick()
+                        }
+                        horizontalDistance = 0f
+                    },
+                    onDragCancel = { horizontalDistance = 0f }
+                )
             }
-        )
     ) {
-        val phaseValue = phase.value
-        val phaseAngle = phaseValue * 6.2831855f
         val center = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height / 2f)
         val centerY = center.y
+        val bandCount = levels.size.coerceAtLeast(1)
+
+        fun levelAt(position: Float): Float {
+            if (!isPlaying || !isVisible || levels.isEmpty()) return 0f
+            val scaled = position.coerceIn(0f, 1f) * (bandCount - 1)
+            val low = scaled.toInt().coerceIn(0, bandCount - 1)
+            val high = (low + 1).coerceAtMost(bandCount - 1)
+            val fraction = scaled - low
+            return (levels[low] * (1f - fraction) + levels[high] * fraction)
+                .coerceIn(0f, 1f)
+        }
 
         fun spectrumColor(position: Float): Color {
             if (colorMode != "Spectrum") return color
-            val hue = (position.coerceIn(0f, 1f) * 300f + phaseValue * 70f) % 360f
+            // Preserve the player's existing palette; colour does not animate.
+            val hue = position.coerceIn(0f, 1f) * 300f
             return Color.hsv(hue, 0.78f, 0.96f)
         }
 
         when (style) {
-            // Keep the compact bar style as-is; it is already the strongest visual.
             "Bars" -> {
                 val count = 32
                 val gap = 3.dp.toPx()
                 val barWidth = ((size.width - gap * (count - 1)) / count).coerceAtLeast(1f)
                 repeat(count) { index ->
-                    val wave = kotlin.math.abs(kotlin.math.sin(index * 0.72f + phaseValue * 6.28f))
-                    val height = size.height * (0.18f + wave * if (isPlaying) 0.78f else 0.16f)
+                    val fraction = index / (count - 1f)
+                    val activity = levelAt(fraction)
+                    val height = size.height * (0.08f + activity * 0.90f)
                     val x = index * (barWidth + gap)
                     val barColor = if (colorMode == "Spectrum") {
-                        Color.hsv((index * 360f / count + phaseValue * 140f) % 360f, 0.78f, 0.96f)
+                        spectrumColor(fraction)
                     } else color
                     drawRoundRect(
-                        barColor.copy(alpha = 0.35f + wave * 0.55f),
+                        barColor.copy(alpha = 0.28f + activity * 0.70f),
                         topLeft = androidx.compose.ui.geometry.Offset(x, centerY - height / 2f),
                         size = androidx.compose.ui.geometry.Size(barWidth, height),
                         cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 2f)
@@ -157,8 +184,6 @@ private fun PlayerVisualizer(
                 }
             }
 
-            // Layered harmonics and a changing amplitude envelope make the trace
-            // feel closer to a recorded waveform than a single travelling sine.
             "Wave" -> {
                 drawLine(
                     color.copy(alpha = 0.12f),
@@ -166,36 +191,25 @@ private fun PlayerVisualizer(
                     end = androidx.compose.ui.geometry.Offset(size.width, centerY),
                     strokeWidth = 1.dp.toPx()
                 )
-
                 val points = 64
                 repeat(2) { layer ->
                     val path = androidx.compose.ui.graphics.Path()
                     repeat(points + 1) { index ->
                         val fraction = index / points.toFloat()
                         val x = size.width * fraction
-                        val envelope = 0.22f + 0.78f * kotlin.math.abs(
-                            kotlin.math.sin(fraction * 10.5f + layer * 0.9f)
-                        )
-                        val fundamental = kotlin.math.sin(
-                            fraction * 18f + phaseAngle * (0.9f + layer * 0.16f)
-                        )
-                        val harmonic = kotlin.math.sin(
-                            fraction * 37f - phaseAngle * 0.7f + layer * 0.4f
-                        )
-                        val detail = kotlin.math.sin(fraction * 71f + phaseAngle * 0.45f)
-                        val signal = fundamental * 0.56f + harmonic * 0.29f + detail * 0.15f
-                        val activity = if (isPlaying) 0.42f else 0.07f
+                        val activity = levelAt(fraction)
+                        val carrier = kotlin.math.sin(fraction * 18f * 6.2831855f + layer * 0.8f)
+                        val harmonic = kotlin.math.sin(fraction * 37f * 6.2831855f - layer * 0.45f)
+                        val signal = carrier * 0.72f + harmonic * 0.28f
                         val layerScale = if (layer == 0) 1f else 0.62f
-                        val y = centerY + signal * envelope * size.height * activity * layerScale
+                        val y = centerY + signal * size.height * (0.035f + activity * 0.43f) * layerScale
                         if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
                     }
                     drawPath(
                         path = path,
                         brush = Brush.horizontalGradient(
                             colors = List(13) { index ->
-                                spectrumColor(index / 12f).copy(
-                                    alpha = if (layer == 0) 0.92f else 0.30f
-                                )
+                                spectrumColor(index / 12f).copy(alpha = if (layer == 0) 0.92f else 0.30f)
                             }
                         ),
                         style = androidx.compose.ui.graphics.drawscope.Stroke(
@@ -206,7 +220,6 @@ private fun PlayerVisualizer(
                 }
             }
 
-            // A compact circular spectrum: fine radial ticks plus two rotating arcs.
             "Ring" -> {
                 val outerRadius = size.height * 0.43f
                 drawCircle(
@@ -215,16 +228,13 @@ private fun PlayerVisualizer(
                     center = center,
                     style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx())
                 )
-
                 val tickCount = 36
                 repeat(tickCount) { index ->
+                    val fraction = index / (tickCount - 1f)
                     val angle = index * (6.2831855f / tickCount) - 1.5707963f
-                    val level = kotlin.math.abs(
-                        kotlin.math.sin(index * 0.52f + phaseAngle * 1.35f)
-                    )
-                    val activity = if (isPlaying) 0.25f + level * 0.75f else 0.18f
+                    val activity = levelAt(fraction)
                     val innerRadius = size.height * 0.34f
-                    val tickLength = size.height * (0.035f + activity * 0.075f)
+                    val tickLength = size.height * (0.025f + activity * 0.105f)
                     val start = androidx.compose.ui.geometry.Offset(
                         center.x + kotlin.math.cos(angle) * innerRadius,
                         center.y + kotlin.math.sin(angle) * innerRadius
@@ -234,86 +244,59 @@ private fun PlayerVisualizer(
                         center.y + kotlin.math.sin(angle) * (innerRadius + tickLength)
                     )
                     drawLine(
-                        spectrumColor(index / (tickCount - 1).toFloat()).copy(alpha = 0.32f + activity * 0.55f),
+                        spectrumColor(fraction).copy(alpha = 0.25f + activity * 0.70f),
                         start = start,
                         end = end,
                         strokeWidth = 1.2.dp.toPx(),
                         cap = androidx.compose.ui.graphics.StrokeCap.Round
                     )
                 }
-
+                val bass = levelAt(0.12f)
+                val treble = levelAt(0.82f)
                 val arcRadius = size.height * 0.23f
                 val arcSize = androidx.compose.ui.geometry.Size(arcRadius * 2f, arcRadius * 2f)
-                val arcTopLeft = androidx.compose.ui.geometry.Offset(
-                    center.x - arcRadius,
-                    center.y - arcRadius
-                )
+                val arcTopLeft = androidx.compose.ui.geometry.Offset(center.x - arcRadius, center.y - arcRadius)
                 drawArc(
-                    color = spectrumColor(0.28f).copy(alpha = if (isPlaying) 0.82f else 0.30f),
-                    startAngle = -105f + phaseValue * 82f,
-                    sweepAngle = 126f + kotlin.math.sin(phaseAngle) * 16f,
+                    color = spectrumColor(0.28f).copy(alpha = 0.28f + bass * 0.65f),
+                    startAngle = -105f,
+                    sweepAngle = 90f + bass * 90f,
                     useCenter = false,
                     topLeft = arcTopLeft,
                     size = arcSize,
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(
-                        width = 2.dp.toPx(),
-                        cap = androidx.compose.ui.graphics.StrokeCap.Round
-                    )
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
                 )
                 drawArc(
-                    color = spectrumColor(0.76f).copy(alpha = 0.38f),
-                    startAngle = 72f - phaseValue * 58f,
-                    sweepAngle = 68f + kotlin.math.sin(phaseAngle + 1.2f) * 12f,
+                    color = spectrumColor(0.76f).copy(alpha = 0.20f + treble * 0.55f),
+                    startAngle = 72f,
+                    sweepAngle = 42f + treble * 65f,
                     useCenter = false,
                     topLeft = arcTopLeft,
                     size = arcSize,
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(
-                        width = 1.3.dp.toPx(),
-                        cap = androidx.compose.ui.graphics.StrokeCap.Round
-                    )
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
                 )
-                drawCircle(
-                    color.copy(alpha = if (isPlaying) 0.95f else 0.45f),
-                    radius = 1.7.dp.toPx(),
-                    center = center
-                )
+                drawCircle(color.copy(alpha = 0.35f + levelAt(0.5f) * 0.60f), radius = 1.7.dp.toPx(), center = center)
             }
 
-            // Nested, expanding contours give Pulse a clear centre-out motion
-            // without using the old single rectangle that simply grew to the edge.
             "Pulse" -> {
+                val bass = levelAt(0.08f)
+                val mids = levelAt(0.48f)
+                val highs = levelAt(0.88f)
+                val activities = listOf(bass, mids, highs)
                 repeat(3) { index ->
-                    val wave = if (isPlaying) {
-                        (kotlin.math.sin(phaseAngle - index * 0.92f) + 1f) * 0.5f
-                    } else {
-                        0.18f
-                    }
-                    val width = size.width * (0.28f + index * 0.16f + wave * 0.07f)
+                    val activity = activities[index]
+                    val width = size.width * (0.28f + index * 0.16f + activity * 0.09f)
                     val height = size.height * (0.24f + index * 0.22f)
                     drawRoundRect(
-                        color = spectrumColor(index / 2f).copy(
-                            alpha = if (isPlaying) 0.18f + wave * 0.22f else 0.10f
-                        ),
-                        topLeft = androidx.compose.ui.geometry.Offset(
-                            center.x - width / 2f,
-                            center.y - height / 2f
-                        ),
+                        color = spectrumColor(index / 2f).copy(alpha = 0.08f + activity * 0.30f),
+                        topLeft = androidx.compose.ui.geometry.Offset(center.x - width / 2f, center.y - height / 2f),
                         size = androidx.compose.ui.geometry.Size(width, height),
                         cornerRadius = androidx.compose.ui.geometry.CornerRadius(height / 2f),
-                        style = androidx.compose.ui.graphics.drawscope.Stroke(
-                            width = (1.8f - index * 0.25f).dp.toPx()
-                        )
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = (1.8f - index * 0.25f).dp.toPx())
                     )
                 }
-                drawCircle(
-                    spectrumColor(0.5f).copy(alpha = if (isPlaying) 0.92f else 0.38f),
-                    radius = 1.8.dp.toPx(),
-                    center = center
-                )
+                drawCircle(spectrumColor(0.5f).copy(alpha = 0.30f + mids * 0.65f), radius = 1.8.dp.toPx(), center = center)
             }
 
-            // Several soft light fields drift independently instead of showing
-            // one hard-edged breathing circle.
             "Glow" -> {
                 drawLine(
                     color.copy(alpha = 0.10f),
@@ -323,40 +306,19 @@ private fun PlayerVisualizer(
                 )
                 val anchors = floatArrayOf(0.22f, 0.50f, 0.78f)
                 anchors.forEachIndexed { index, anchor ->
-                    val drift = if (isPlaying) {
-                        kotlin.math.sin(phaseAngle * 0.72f + index * 2.1f) * size.width * 0.055f
-                    } else {
-                        0f
-                    }
-                    val glowCenter = androidx.compose.ui.geometry.Offset(
-                        size.width * anchor + drift,
-                        centerY
-                    )
-                    val radius = size.width * (0.16f + if (isPlaying) {
-                        0.018f * kotlin.math.sin(phaseAngle + index).let { kotlin.math.abs(it) }
-                    } else {
-                        0f
-                    })
-                    val intensity = if (isPlaying) 0.30f else 0.10f
+                    val activity = levelAt(anchor)
+                    val glowCenter = androidx.compose.ui.geometry.Offset(size.width * anchor, centerY)
+                    val radius = size.width * (0.10f + activity * 0.12f)
+                    val intensity = 0.06f + activity * 0.34f
                     val glowColor = spectrumColor(anchor)
                     drawOval(
                         brush = Brush.radialGradient(
-                            colors = listOf(
-                                glowColor.copy(alpha = intensity),
-                                glowColor.copy(alpha = intensity * 0.38f),
-                                Color.Transparent
-                            ),
+                            colors = listOf(glowColor.copy(alpha = intensity), glowColor.copy(alpha = intensity * 0.38f), Color.Transparent),
                             center = glowCenter,
                             radius = radius
                         ),
-                        topLeft = androidx.compose.ui.geometry.Offset(
-                            glowCenter.x - radius,
-                            centerY - size.height * 0.52f
-                        ),
-                        size = androidx.compose.ui.geometry.Size(
-                            radius * 2f,
-                            size.height * 1.04f
-                        )
+                        topLeft = androidx.compose.ui.geometry.Offset(glowCenter.x - radius, centerY - size.height * 0.52f),
+                        size = androidx.compose.ui.geometry.Size(radius * 2f, size.height * 1.04f)
                     )
                 }
             }
@@ -758,13 +720,18 @@ fun FullPlayer(
     }
 
     val themePlayerBackground = MaterialTheme.colorScheme.background
+    val animatedArtworkColor by animateColorAsState(
+        targetValue = Color(uiState.playerBackgroundColor),
+        animationSpec = tween(durationMillis = 720, easing = FastOutSlowInEasing),
+        label = "SongArtworkBackgroundTransition"
+    )
     val backgroundBrush = remember(
-        uiState.playerBackgroundColor,
+        animatedArtworkColor,
         isDark,
         playerBackgroundStyle,
         themePlayerBackground
     ) {
-        val playerColor = Color(uiState.playerBackgroundColor)
+        val playerColor = animatedArtworkColor
         val finalColor = deriveArtworkSurfaceColor(
             sourceColor = playerColor,
             isDark = isDark,
@@ -816,8 +783,8 @@ fun FullPlayer(
     val sleepTimerMode by viewModel.sleepTimerMode.collectAsStateWithLifecycle()
     val sleepTimerEndTime by viewModel.sleepTimerEndTime.collectAsStateWithLifecycle()
     
-    val lyricsBackgroundBrush = remember(uiState.playerBackgroundColor, isDark) {
-        val playerColor = Color(uiState.playerBackgroundColor)
+    val lyricsBackgroundBrush = remember(animatedArtworkColor, isDark) {
+        val playerColor = animatedArtworkColor
         val finalColor = deriveArtworkSurfaceColor(
             sourceColor = playerColor,
             isDark = isDark,
@@ -1017,7 +984,9 @@ fun FullPlayer(
                         else -> dynamicAccentColor
                     },
                     colorMode = visualizerColor,
-                    isVisible = isPlayerVisible
+                    isVisible = isPlayerVisible,
+                    onPreviousClick = onPreviousClick,
+                    onNextClick = onNextClick
                 )
                 Spacer(modifier = Modifier.height(if (compactLandscape) 4.dp else 10.dp))
             }
