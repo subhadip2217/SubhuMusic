@@ -663,21 +663,23 @@ class MainActivity : AppCompatActivity() {
                         )
                         AudioFormatChoiceDialogHost()
 
-                        if (topVisualizerEnabled && currentSong != null) {
-                            TopAudioVisualizerPill(
-                                title = currentSong.title,
-                                artist = currentSong.artist,
-                                artworkUri = currentSong.getAlbumArtUri(),
-                                levels = visualizerLevels,
-                                isPlaying = isPlaying,
-                                style = topVisualizerStyle,
-                                colorPreset = topVisualizerColor,
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter)
-                                    .statusBarsPadding()
-                                    .padding(top = 8.dp)
-                                    .zIndex(30f)
-                            )
+                        if (topVisualizerEnabled) {
+                            currentSong?.let { song ->
+                                TopAudioVisualizerPill(
+                                    title = song.title,
+                                    artist = song.artist,
+                                    artworkUri = song.getAlbumArtUri(),
+                                    levels = visualizerLevels,
+                                    isPlaying = isPlaying,
+                                    style = topVisualizerStyle,
+                                    colorPreset = topVisualizerColor,
+                                    modifier = Modifier
+                                        .align(Alignment.TopCenter)
+                                        .statusBarsPadding()
+                                        .padding(top = 8.dp)
+                                        .zIndex(30f)
+                                )
+                            }
                         }
                     }
                 }
